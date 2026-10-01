@@ -1,0 +1,14 @@
+node_modules
+dist
+engine/dist
+.git
+.gitignore
+data
+*.log
+npm-debug.log*
+.DS_Store
+.vscode
+.idea
+scratch
+coverage
+content/packs/propagation-model/.parts

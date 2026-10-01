@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "outDir": "../dist/server",
+    "rootDir": "..",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "sourceMap": true,
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+
+    "baseUrl": "..",
+    "paths": { "@engine/*": ["./engine/src/*"], "@/*": ["./*"] },
+    "types": ["node"]
+  },
+  "include": ["../server/**/*.ts", "../engine/src/**/*.ts", "../lib/governance/**/*.ts"],
+  "exclude": ["../server/tests/**/*", "../node_modules", "../dist"]
+}

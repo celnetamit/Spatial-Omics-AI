@@ -1,0 +1,1819 @@
+{
+  "packId": "drug-evidence-chembl",
+  "version": "1.0.0",
+  "retrievedAt": "2026-09-22T06:52:16.450Z",
+  "source": {
+    "database": "ChEMBL",
+    "api": "https://www.ebi.ac.uk/chembl/api/data",
+    "licence": "ChEMBL data is available under CC BY-SA 3.0.",
+    "citation": "Zdrazil B, Felix E, Hunter F, et al. The ChEMBL Database in 2023. Nucleic Acids Research 2024;52:D1180-D1192. doi:10.1093/nar/gkad1004"
+  },
+  "whatIsRetrievedVersusCurated": "Molecule records, target records and potency measurements are retrieved verbatim from ChEMBL. Action type, therapy class and mechanism descriptions are curated and are marked as such on every record.",
+  "records": [
+    {
+      "drugId": "CHEMBL553",
+      "name": "ERLOTINIB",
+      "prefName": "ERLOTINIB",
+      "moleculeType": "Small molecule",
+      "maxPhase": "4.0",
+      "firstApproval": 2004,
+      "atc": [
+        "L01EB02"
+      ],
+      "smiles": "C#Cc1cccc(Nc2ncnc3cc(OCCOC)c(OCCOC)cc23)c1",
+      "target": "EGFR",
+      "targetUniprot": "P00533",
+      "targetChemblId": "CHEMBL203",
+      "targetName": "Epidermal growth factor receptor",
+      "targetOrganism": "Homo sapiens",
+      "curated": {
+        "actionType": "inhibitor",
+        "therapyClass": "small-molecule",
+        "mechanism": "Reversible ATP-competitive EGFR tyrosine kinase inhibitor.",
+        "indirect": false,
+        "note": "Action type, therapy class and mechanism text are curated from standard pharmacology, not retrieved. A potency measurement says how tightly a compound binds, not what binding does, so these cannot be derived from the activity records below."
+      },
+      "potency": {
+        "medianNm": 30,
+        "measurements": 210,
+        "types": [
+          "IC50",
+          "Ki"
+        ],
+        "testedRangeNm": [
+          0.7350000000000003,
+          1200
+        ],
+        "minNm": 0.029,
+        "maxNm": 421000,
+        "rangeBasis": "10th to 90th percentile of the retrieved measurements; the extremes are single assays of unlike kinds."
+      },
+      "evidence": {
+        "source": "ChEMBL",
+        "targetQuery": "https://www.ebi.ac.uk/chembl/api/data/target.json?target_components__accession=P00533",
+        "activityQuery": "https://www.ebi.ac.uk/chembl/api/data/activity.json?molecule_chembl_id=CHEMBL553&target_chembl_id=CHEMBL203",
+        "documentCount": 148,
+        "documents": [
+          "CHEMBL1135208",
+          "CHEMBL1146682",
+          "CHEMBL1138126",
+          "CHEMBL1140520",
+          "CHEMBL1157167",
+          "CHEMBL1149823",
+          "CHEMBL1139297",
+          "CHEMBL1140956",
+          "CHEMBL1157716",
+          "CHEMBL1157563",
+          "CHEMBL1157709",
+          "CHEMBL1157666",
+          "CHEMBL1157668",
+          "CHEMBL1155389",
+          "CHEMBL1156213",
+          "CHEMBL1156950",
+          "CHEMBL1157126",
+          "CHEMBL1177661",
+          "CHEMBL1177684",
+          "CHEMBL1250424",
+          "CHEMBL1255185",
+          "CHEMBL1681756",
+          "CHEMBL1811883",
+          "CHEMBL1821709",
+          "CHEMBL1828579"
+        ],
+        "exampleAssays": [
+          {
+            "id": "CHEMBL683041",
+            "description": "Inhibition of Epidermal Growth Factor Receptor (EGFR) autophosphorylation"
+          },
+          {
+            "id": "CHEMBL674106",
+            "description": "Inhibitory activity against epidermal growth factor receptor"
+          },
+          {
+            "id": "CHEMBL862515",
+            "description": "Inhibition of EGF stimulated human erbB1 autophosphorylation in NIH3T3 cells"
+          },
+          {
+            "id": "CHEMBL862512",
+            "description": "Inhibition of erbB1 fusion protein expressed in baculovirus by ELISA"
+          },
+          {
+            "id": "CHEMBL924351",
+            "description": "Inhibition of EGFR"
+          },
+          {
+            "id": "CHEMBL978648",
+            "description": "Inhibition of EGFR"
+          }
+        ],
+        "retrievedAt": "2026-09-22T06:04:13.076Z"
+      }
+    },
+    {
+      "drugId": "CHEMBL939",
+      "name": "GEFITINIB",
+      "prefName": "GEFITINIB",
+      "moleculeType": "Small molecule",
+      "maxPhase": "4.0",
+      "firstApproval": 2003,
+      "atc": [
+        "L01EB01"
+      ],
+      "smiles": "COc1cc2ncnc(Nc3ccc(F)c(Cl)c3)c2cc1OCCCN1CCOCC1",
+      "target": "EGFR",
+      "targetUniprot": "P00533",
+      "targetChemblId": "CHEMBL203",
+      "targetName": "Epidermal growth factor receptor",
+      "targetOrganism": "Homo sapiens",
+      "curated": {
+        "actionType": "inhibitor",
+        "therapyClass": "small-molecule",
+        "mechanism": "Reversible ATP-competitive EGFR tyrosine kinase inhibitor.",
+        "indirect": false,
+        "note": "Action type, therapy class and mechanism text are curated from standard pharmacology, not retrieved. A potency measurement says how tightly a compound binds, not what binding does, so these cannot be derived from the activity records below."
+      },
+      "potency": {
+        "medianNm": 21.5,
+        "measurements": 236,
+        "types": [
+          "IC50",
+          "Ki"
+        ],
+        "testedRangeNm": [
+          0.8500000000000001,
+          1466
+        ],
+        "minNm": 0.1,
+        "maxNm": 22800,
+        "rangeBasis": "10th to 90th percentile of the retrieved measurements; the extremes are single assays of unlike kinds."
+      },
+      "evidence": {
+        "source": "ChEMBL",
+        "targetQuery": "https://www.ebi.ac.uk/chembl/api/data/target.json?target_components__accession=P00533",
+        "activityQuery": "https://www.ebi.ac.uk/chembl/api/data/activity.json?molecule_chembl_id=CHEMBL939&target_chembl_id=CHEMBL203",
+        "documentCount": 138,
+        "documents": [
+          "CHEMBL1135208",
+          "CHEMBL1146682",
+          "CHEMBL1134804",
+          "CHEMBL1138126",
+          "CHEMBL1147701",
+          "CHEMBL1149481",
+          "CHEMBL1147965",
+          "CHEMBL1140520",
+          "CHEMBL1139297",
+          "CHEMBL1140899",
+          "CHEMBL1140956",
+          "CHEMBL1155367",
+          "CHEMBL1159111",
+          "CHEMBL1157709",
+          "CHEMBL1155389",
+          "CHEMBL1177838",
+          "CHEMBL1177739",
+          "CHEMBL1269003",
+          "CHEMBL1681756",
+          "CHEMBL1759979",
+          "CHEMBL1811776",
+          "CHEMBL1926674",
+          "CHEMBL1933060",
+          "CHEMBL1944591",
+          "CHEMBL2046429"
+        ],
+        "exampleAssays": [
+          {
+            "id": "CHEMBL683041",
+            "description": "Inhibition of Epidermal Growth Factor Receptor (EGFR) autophosphorylation"
+          },
+          {
+            "id": "CHEMBL674106",
+            "description": "Inhibitory activity against epidermal growth factor receptor"
+          },
+          {
+            "id": "CHEMBL677210",
+            "description": "In vitro inhibitory activity against Epidermal growth factor receptor (EGFR-TK) from A431 vulval squamous carcinoma cells using TKI assay"
+          },
+          {
+            "id": "CHEMBL862515",
+            "description": "Inhibition of EGF stimulated human erbB1 autophosphorylation in NIH3T3 cells"
+          },
+          {
+            "id": "CHEMBL862512",
+            "description": "Inhibition of erbB1 fusion protein expressed in baculovirus by ELISA"
+          },
+          {
+            "id": "CHEMBL853149",
+            "description": "Inhibition of EGFR in presence of 2 uM ATP"
+          }
+        ],
+        "retrievedAt": "2026-09-22T06:04:13.076Z"
+      }
+    },
+    {
+      "drugId": "CHEMBL3353410",
+      "name": "OSIMERTINIB",
+      "prefName": "OSIMERTINIB",
+      "moleculeType": "Small molecule",
+      "maxPhase": "4.0",
+      "firstApproval": 2015,
+      "atc": [
+        "L01EB04"
+      ],
+      "smiles": "C=CC(=O)Nc1cc(Nc2nccc(-c3cn(C)c4ccccc34)n2)c(OC)cc1N(C)CCN(C)C",
+      "target": "EGFR",
+      "targetUniprot": "P00533",
+      "targetChemblId": "CHEMBL203",
+      "targetName": "Epidermal growth factor receptor",
+      "targetOrganism": "Homo sapiens",
+      "curated": {
+        "actionType": "inhibitor",
+        "therapyClass": "small-molecule",
+        "mechanism": "Irreversible third-generation EGFR inhibitor, covalent at Cys797.",
+        "indirect": false,
+        "note": "Action type, therapy class and mechanism text are curated from standard pharmacology, not retrieved. A potency measurement says how tightly a compound binds, not what binding does, so these cannot be derived from the activity records below."
+      },
+      "potency": {
+        "medianNm": 12,
+        "measurements": 254,
+        "types": [
+          "IC50",
+          "Ki"
+        ],
+        "testedRangeNm": [
+          0.644,
+          480
+        ],
+        "minNm": 0.002,
+        "maxNm": 480000,
+        "rangeBasis": "10th to 90th percentile of the retrieved measurements; the extremes are single assays of unlike kinds."
+      },
+      "evidence": {
+        "source": "ChEMBL",
+        "targetQuery": "https://www.ebi.ac.uk/chembl/api/data/target.json?target_components__accession=P00533",
+        "activityQuery": "https://www.ebi.ac.uk/chembl/api/data/activity.json?molecule_chembl_id=CHEMBL3353410&target_chembl_id=CHEMBL203",
+        "documentCount": 98,
+        "documents": [
+          "CHEMBL3351341",
+          "CHEMBL3751728",
+          "CHEMBL3785051",
+          "CHEMBL3785081",
+          "CHEMBL3797107",
+          "CHEMBL3860038",
+          "CHEMBL4000215",
+          "CHEMBL4007434",
+          "CHEMBL4011631",
+          "CHEMBL4024702",
+          "CHEMBL4038351",
+          "CHEMBL4043110",
+          "CHEMBL4049460",
+          "CHEMBL4052618",
+          "CHEMBL4118234",
+          "CHEMBL4152247",
+          "CHEMBL4177590",
+          "CHEMBL4196024",
+          "CHEMBL4219100",
+          "CHEMBL4219138",
+          "CHEMBL4219174",
+          "CHEMBL4257480",
+          "CHEMBL4266062",
+          "CHEMBL4312015",
+          "CHEMBL4321840"
+        ],
+        "exampleAssays": [
+          {
+            "id": "CHEMBL3389020",
+            "description": "Inhibition of EGFR L858R/T790M double mutant phosphorylation in human NCI-H1975 cells after 2 hrs by fluorescence assay"
+          },
+          {
+            "id": "CHEMBL3389021",
+            "description": "Inhibition of EGFR exon 19 deletion activating mutant phosphorylation in human PC9 cells after 2 hrs by fluorescence assay"
+          },
+          {
+            "id": "CHEMBL3389022",
+            "description": "Inhibition of wild type EGFR phosphorylation in human LoVo cells after 2 hrs by fluorescence assay"
+          },
+          {
+            "id": "CHEMBL3755797",
+            "description": "Inhibition of EGFR L858R/T790M mutant (unknown origin) using Poly(Glu,Tyr)4:1 as substrate incubated for 1 hr by ELISA"
+          },
+          {
+            "id": "CHEMBL3755796",
+            "description": "Inhibiton of wild type EGFR (unknown origin) using Poly (Glu4Tyr1) as substrate incubated for 1 hr by ELISA"
+          },
+          {
+            "id": "CHEMBL3789493",
+            "description": "Inhibition of EGFR Del ex19 mutant phosphorylation in human PC9 cells preincubated for 2 hrs by ELISA"
+          }
+        ],
+        "retrievedAt": "2026-09-22T06:04:13.076Z"
+      }
+    },
+    {
+      "drugId": "CHEMBL2103875",
+      "name": "TRAMETINIB",
+      "prefName": "TRAMETINIB",
+      "moleculeType": "Small molecule",
+      "maxPhase": "4.0",
+      "firstApproval": 2013,
+      "atc": [
+        "L01EE01"
+      ],
+      "smiles": "CC(=O)Nc1cccc(-n2c(=O)n(C3CC3)c(=O)c3c(Nc4ccc(I)cc4F)n(C)c(=O)c(C)c32)c1",
+      "target": "MAP2K1",
+      "targetUniprot": "Q02750",
+      "targetChemblId": "CHEMBL3587",
+      "targetName": "Dual specificity mitogen-activated protein kinase kinase 1",
+      "targetOrganism": "Homo sapiens",
+      "curated": {
+        "actionType": "inhibitor",
+        "therapyClass": "small-molecule",
+        "mechanism": "Allosteric MEK1/2 inhibitor.",
+        "indirect": false,
+        "note": "Action type, therapy class and mechanism text are curated from standard pharmacology, not retrieved. A potency measurement says how tightly a compound binds, not what binding does, so these cannot be derived from the activity records below."
+      },
+      "potency": {
+        "medianNm": 2.8499999999999996,
+        "measurements": 16,
+        "types": [
+          "IC50"
+        ],
+        "testedRangeNm": [
+          0.61,
+          105
+        ],
+        "minNm": 0.48,
+        "maxNm": 10000,
+        "rangeBasis": "10th to 90th percentile of the retrieved measurements; the extremes are single assays of unlike kinds."
+      },
+      "evidence": {
+        "source": "ChEMBL",
+        "targetQuery": "https://www.ebi.ac.uk/chembl/api/data/target.json?target_components__accession=Q02750",
+        "activityQuery": "https://www.ebi.ac.uk/chembl/api/data/activity.json?molecule_chembl_id=CHEMBL2103875&target_chembl_id=CHEMBL3587",
+        "documentCount": 6,
+        "documents": [
+          "CHEMBL3132762",
+          "CHEMBL4433204",
+          "CHEMBL5131375",
+          "CHEMBL5444388",
+          "CHEMBL5446079",
+          "CHEMBL5465560"
+        ],
+        "exampleAssays": [
+          {
+            "id": "CHEMBL3136009",
+            "description": "Inhibition of B-Raf activated MEK1 (unknown origin) assessed as ERK2-mediated MBP phosphorylation after 30 mins by ELISA"
+          },
+          {
+            "id": "CHEMBL4433500",
+            "description": "Inhibition of MEK1 (unknown origin)"
+          },
+          {
+            "id": "CHEMBL5131619",
+            "description": "Non competitive inhibition of MEK1 (unknown origin)"
+          },
+          {
+            "id": "CHEMBL5131722",
+            "description": "Inhibition of MEK1 (unknown origin)"
+          },
+          {
+            "id": "CHEMBL5445898",
+            "description": "Affinity Phenotypic Cellular interaction: (Cytotoxicity sulforhodamine B assay (growth inhibitory activity in HT-29 cells, B-Raf mutation)) EUB0000124b MAP2K1"
+          },
+          {
+            "id": "CHEMBL5445900",
+            "description": "Affinity Phenotypic Cellular interaction: (Cytotoxicity sulforhodamine B assay (growth inhibitory activity in human colorectal cancer cell line COLO205, B-Raf mutation)) EUB0000124b MAP2K1"
+          }
+        ],
+        "retrievedAt": "2026-09-22T06:04:13.076Z"
+      }
+    },
+    {
+      "drugId": "CHEMBL1614701",
+      "name": "SELUMETINIB",
+      "prefName": "SELUMETINIB",
+      "moleculeType": "Small molecule",
+      "maxPhase": "4.0",
+      "firstApproval": 2020,
+      "atc": [
+        "L01EE04"
+      ],
+      "smiles": "Cn1cnc2c(F)c(Nc3ccc(Br)cc3Cl)c(C(=O)NOCCO)cc21",
+      "target": "MAP2K1",
+      "targetUniprot": "Q02750",
+      "targetChemblId": "CHEMBL3587",
+      "targetName": "Dual specificity mitogen-activated protein kinase kinase 1",
+      "targetOrganism": "Homo sapiens",
+      "curated": {
+        "actionType": "inhibitor",
+        "therapyClass": "small-molecule",
+        "mechanism": "Allosteric MEK1/2 inhibitor.",
+        "indirect": false,
+        "note": "Action type, therapy class and mechanism text are curated from standard pharmacology, not retrieved. A potency measurement says how tightly a compound binds, not what binding does, so these cannot be derived from the activity records below."
+      },
+      "potency": {
+        "medianNm": 1890,
+        "measurements": 14,
+        "types": [
+          "IC50"
+        ],
+        "testedRangeNm": [
+          14,
+          10000
+        ],
+        "minNm": 9,
+        "maxNm": 10000,
+        "rangeBasis": "10th to 90th percentile of the retrieved measurements; the extremes are single assays of unlike kinds."
+      },
+      "evidence": {
+        "source": "ChEMBL",
+        "targetQuery": "https://www.ebi.ac.uk/chembl/api/data/target.json?target_components__accession=Q02750",
+        "activityQuery": "https://www.ebi.ac.uk/chembl/api/data/activity.json?molecule_chembl_id=CHEMBL1614701&target_chembl_id=CHEMBL3587",
+        "documentCount": 7,
+        "documents": [
+          "CHEMBL2375237",
+          "CHEMBL3745607",
+          "CHEMBL4219060",
+          "CHEMBL5210121",
+          "CHEMBL5346924",
+          "CHEMBL5715952",
+          "CHEMBL6071132"
+        ],
+        "exampleAssays": [
+          {
+            "id": "CHEMBL2379959",
+            "description": "Inhibition of MEK1 (unknown origin) after 2 hrs by fluorescence assay"
+          },
+          {
+            "id": "CHEMBL3750088",
+            "description": "Inhibition of MEK1 (unknown origin) using biotinylated ERK1 as substrate incubated for 2 hrs by fluorescence analysis"
+          },
+          {
+            "id": "CHEMBL3751470",
+            "description": "Inhibition of MEK1 in human HeLa-MaTu-ADR matched pair cells assessed as reduction in ERK phosphorylation"
+          },
+          {
+            "id": "CHEMBL3751471",
+            "description": "Inhibition of MEK1 in human HeLa-MaTu matched pair cells assessed as reduction in ERK phosphorylation"
+          },
+          {
+            "id": "CHEMBL4220448",
+            "description": "Inhibition of MEK1 (unknown origin) using Ser/Thr 03 peptide substrate after 4 hrs by fluorescence assay"
+          },
+          {
+            "id": "CHEMBL5210136",
+            "description": "Affinity On-target Cellular interaction (Inhibition of MEK1 human HeLa-Ma Tu matched pair cells) EUB0000129b MAP2K1"
+          }
+        ],
+        "retrievedAt": "2026-09-22T06:04:13.076Z"
+      }
+    },
+    {
+      "drugId": "CHEMBL1229517",
+      "name": "VEMURAFENIB",
+      "prefName": "VEMURAFENIB",
+      "moleculeType": "Small molecule",
+      "maxPhase": "4.0",
+      "firstApproval": 2011,
+      "atc": [
+        "L01EC01"
+      ],
+      "smiles": "CCCS(=O)(=O)Nc1ccc(F)c(C(=O)c2c[nH]c3ncc(-c4ccc(Cl)cc4)cc23)c1F",
+      "target": "BRAF",
+      "targetUniprot": "P15056",
+      "targetChemblId": "CHEMBL5145",
+      "targetName": "Serine/threonine-protein kinase B-raf",
+      "targetOrganism": "Homo sapiens",
+      "curated": {
+        "actionType": "inhibitor",
+        "therapyClass": "small-molecule",
+        "mechanism": "ATP-competitive inhibitor of BRAF V600E.",
+        "indirect": false,
+        "note": "Action type, therapy class and mechanism text are curated from standard pharmacology, not retrieved. A potency measurement says how tightly a compound binds, not what binding does, so these cannot be derived from the activity records below."
+      },
+      "potency": {
+        "medianNm": 32.5,
+        "measurements": 64,
+        "types": [
+          "IC50"
+        ],
+        "testedRangeNm": [
+          13,
+          187.00000000000003
+        ],
+        "minNm": 3.2,
+        "maxNm": 33000,
+        "rangeBasis": "10th to 90th percentile of the retrieved measurements; the extremes are single assays of unlike kinds."
+      },
+      "evidence": {
+        "source": "ChEMBL",
+        "targetQuery": "https://www.ebi.ac.uk/chembl/api/data/target.json?target_components__accession=P15056",
+        "activityQuery": "https://www.ebi.ac.uk/chembl/api/data/activity.json?molecule_chembl_id=CHEMBL1229517&target_chembl_id=CHEMBL5145",
+        "documentCount": 36,
+        "documents": [
+          "CHEMBL1944582",
+          "CHEMBL2069231",
+          "CHEMBL2169832",
+          "CHEMBL2385033",
+          "CHEMBL3233006",
+          "CHEMBL3352385",
+          "CHEMBL3576847",
+          "CHEMBL3580536",
+          "CHEMBL3763041",
+          "CHEMBL3797029",
+          "CHEMBL3797077",
+          "CHEMBL3808327",
+          "CHEMBL3853342",
+          "CHEMBL4049397",
+          "CHEMBL4052661",
+          "CHEMBL4190375",
+          "CHEMBL4229333",
+          "CHEMBL4261543",
+          "CHEMBL4270537",
+          "CHEMBL4325925",
+          "CHEMBL4330078",
+          "CHEMBL4330108",
+          "CHEMBL4364290",
+          "CHEMBL4364309",
+          "CHEMBL4622853"
+        ],
+        "exampleAssays": [
+          {
+            "id": "CHEMBL1948326",
+            "description": "Inhibition of B-Raf V600E mutant-mediated Erk phosphorylation in human A375 cells after 1 hr by fluorescence analysis"
+          },
+          {
+            "id": "CHEMBL1948325",
+            "description": "Inhibition of B-Raf V600E mutant-mediated Erk phosphorylation in human MALME-3M cells after 1 hr by fluorescence analysis"
+          },
+          {
+            "id": "CHEMBL1948324",
+            "description": "Inhibition of full length human B-Raf V600E mutant expressed in baculovirus infected insect cells assessed as [gamma-33P]incorporation into MEK after 60 mins by scintillation counting"
+          },
+          {
+            "id": "CHEMBL2073610",
+            "description": "Inhibition of BRAF V600E mutant by ELISA"
+          },
+          {
+            "id": "CHEMBL2173442",
+            "description": "Inhibition of B-Raf V600E mutant in presence of 100 uM ATP"
+          },
+          {
+            "id": "CHEMBL2173444",
+            "description": "Inhibition of B-Raf in presence of 100 uM ATP"
+          }
+        ],
+        "retrievedAt": "2026-09-22T06:04:13.076Z"
+      }
+    },
+    {
+      "drugId": "CHEMBL2028663",
+      "name": "DABRAFENIB",
+      "prefName": "DABRAFENIB",
+      "moleculeType": "Small molecule",
+      "maxPhase": "4.0",
+      "firstApproval": 2013,
+      "atc": [
+        "L01EC02"
+      ],
+      "smiles": "CC(C)(C)c1nc(-c2cccc(NS(=O)(=O)c3c(F)cccc3F)c2F)c(-c2ccnc(N)n2)s1",
+      "target": "BRAF",
+      "targetUniprot": "P15056",
+      "targetChemblId": "CHEMBL5145",
+      "targetName": "Serine/threonine-protein kinase B-raf",
+      "targetOrganism": "Homo sapiens",
+      "curated": {
+        "actionType": "inhibitor",
+        "therapyClass": "small-molecule",
+        "mechanism": "ATP-competitive inhibitor of BRAF V600E.",
+        "indirect": false,
+        "note": "Action type, therapy class and mechanism text are curated from standard pharmacology, not retrieved. A potency measurement says how tightly a compound binds, not what binding does, so these cannot be derived from the activity records below."
+      },
+      "potency": {
+        "medianNm": 1,
+        "measurements": 27,
+        "types": [
+          "IC50"
+        ],
+        "testedRangeNm": [
+          0.56,
+          8.400000000000002
+        ],
+        "minNm": 0.4,
+        "maxNm": 11,
+        "rangeBasis": "10th to 90th percentile of the retrieved measurements; the extremes are single assays of unlike kinds."
+      },
+      "evidence": {
+        "source": "ChEMBL",
+        "targetQuery": "https://www.ebi.ac.uk/chembl/api/data/target.json?target_components__accession=P15056",
+        "activityQuery": "https://www.ebi.ac.uk/chembl/api/data/activity.json?molecule_chembl_id=CHEMBL2028663&target_chembl_id=CHEMBL5145",
+        "documentCount": 16,
+        "documents": [
+          "CHEMBL2331286",
+          "CHEMBL3576847",
+          "CHEMBL3797029",
+          "CHEMBL3853361",
+          "CHEMBL4190375",
+          "CHEMBL4261543",
+          "CHEMBL4325925",
+          "CHEMBL4725337",
+          "CHEMBL4725379",
+          "CHEMBL4732217",
+          "CHEMBL5154673",
+          "CHEMBL5385871",
+          "CHEMBL5512630",
+          "CHEMBL5579821",
+          "CHEMBL5579849",
+          "CHEMBL6074624"
+        ],
+        "exampleAssays": [
+          {
+            "id": "CHEMBL2340066",
+            "description": "Inhibition of B-Raf V600E mutant in human HepG2 cells assessed as decrease in ERK phosphorylation"
+          },
+          {
+            "id": "CHEMBL2340072",
+            "description": "Inhibition of B-Raf V600E mutant-driven A375P-F11 cell proliferation"
+          },
+          {
+            "id": "CHEMBL2345977",
+            "description": "Inhibition of B-Raf V600E mutant in human SK-MEL-28 cells assessed as decrease in ERK phosphorylation incubated for 1 hr by immunoassay"
+          },
+          {
+            "id": "CHEMBL2345978",
+            "description": "Inhibition of N-terminal His tagged B-Raf V600E mutant (unknown origin) expressed in baculovirus infected insect cells co-expressing CDC37 assessed as decrease in biotinylated-MEK protein phosphorylation by AlphaScreen assay"
+          },
+          {
+            "id": "CHEMBL3578338",
+            "description": "Inhibition of BRAF V600E mutant in human A375 cells assessed as inhibition of ERK phosphorylation measured after 72 hrs by ELISA assay"
+          },
+          {
+            "id": "CHEMBL3578336",
+            "description": "Inhibition of wild type BRAF (unknown origin) assessed as ADP formation measured for 5 hrs by pyruvate kinase/lactate dehydrogenase coupled assay in presence of ATP, MEK1, NADH"
+          }
+        ],
+        "retrievedAt": "2026-09-22T06:04:13.076Z"
+      }
+    },
+    {
+      "drugId": "CHEMBL413",
+      "name": "SIROLIMUS",
+      "prefName": "SIROLIMUS",
+      "moleculeType": "Small molecule",
+      "maxPhase": "4.0",
+      "firstApproval": 1999,
+      "atc": [
+        "S01XA23",
+        "L04AH01",
+        "L01EG04"
+      ],
+      "smiles": "CO[C@H]1C[C@@H]2CC[C@@H](C)[C@@](O)(O2)C(=O)C(=O)N2CCCC[C@H]2C(=O)O[C@H]([C@H](C)C[C@@H]2CC[C@@H](O)[C@H](OC)C2)CC(=O)[C@H](C)/C=C(\\C)[C@@H](O)[C@@H](OC)C(=O)[C@H](C)C[C@H](C)/C=C/C=C/C=C/1C",
+      "target": "MTOR",
+      "targetUniprot": "P42345",
+      "targetChemblId": "CHEMBL2842",
+      "targetName": "Serine/threonine-protein kinase mTOR",
+      "targetOrganism": "Homo sapiens",
+      "curated": {
+        "actionType": "inhibitor",
+        "therapyClass": "small-molecule",
+        "mechanism": "Allosteric mTORC1 inhibitor acting through FKBP12.",
+        "indirect": false,
+        "note": "Action type, therapy class and mechanism text are curated from standard pharmacology, not retrieved. A potency measurement says how tightly a compound binds, not what binding does, so these cannot be derived from the activity records below."
+      },
+      "potency": {
+        "medianNm": 1.6,
+        "measurements": 17,
+        "types": [
+          "IC50"
+        ],
+        "testedRangeNm": [
+          0.1,
+          430.88
+        ],
+        "minNm": 0.05,
+        "maxNm": 5062,
+        "rangeBasis": "10th to 90th percentile of the retrieved measurements; the extremes are single assays of unlike kinds."
+      },
+      "evidence": {
+        "source": "ChEMBL",
+        "targetQuery": "https://www.ebi.ac.uk/chembl/api/data/target.json?target_components__accession=P42345",
+        "activityQuery": "https://www.ebi.ac.uk/chembl/api/data/activity.json?molecule_chembl_id=CHEMBL413&target_chembl_id=CHEMBL2842",
+        "documentCount": 12,
+        "documents": [
+          "CHEMBL1132865",
+          "CHEMBL1143652",
+          "CHEMBL1141950",
+          "CHEMBL1156445",
+          "CHEMBL4270553",
+          "CHEMBL4622845",
+          "CHEMBL4819087",
+          "CHEMBL5244238",
+          "CHEMBL5512615",
+          "CHEMBL5532641",
+          "CHEMBL5715952",
+          "CHEMBL6120936"
+        ],
+        "exampleAssays": [
+          {
+            "id": "CHEMBL677281",
+            "description": "The inhibitory activity by using FK506 binding protein 12 SPA binding assay"
+          },
+          {
+            "id": "CHEMBL881403",
+            "description": "Inhibitory concentration against FKBP12 receptor"
+          },
+          {
+            "id": "CHEMBL871328",
+            "description": "Inhibitory activity against FKBP12"
+          },
+          {
+            "id": "CHEMBL997061",
+            "description": "Inhibition of mTOR kinase expressed in human HEK293 cells by Western blot analysis"
+          },
+          {
+            "id": "CHEMBL4272807",
+            "description": "Inhibition of mTOR (unknown origin) incubated for 1 hr by ELISA"
+          },
+          {
+            "id": "CHEMBL4623294",
+            "description": "Inhibition of mTOR in HEK293 cells"
+          }
+        ],
+        "retrievedAt": "2026-09-22T06:04:13.076Z"
+      }
+    },
+    {
+      "drugId": "CHEMBL1908360",
+      "name": "EVEROLIMUS",
+      "prefName": "EVEROLIMUS",
+      "moleculeType": "Small molecule",
+      "maxPhase": "4.0",
+      "firstApproval": 2009,
+      "atc": [
+        "L01EG02",
+        "L04AH02"
+      ],
+      "smiles": "CO[C@H]1C[C@@H]2CC[C@@H](C)[C@@](O)(O2)C(=O)C(=O)N2CCCC[C@H]2C(=O)O[C@H]([C@H](C)C[C@@H]2CC[C@@H](OCCO)[C@H](OC)C2)CC(=O)[C@H](C)/C=C(\\C)[C@@H](O)[C@@H](OC)C(=O)[C@H](C)C[C@H](C)/C=C/C=C/C=C/1C",
+      "target": "MTOR",
+      "targetUniprot": "P42345",
+      "targetChemblId": "CHEMBL2842",
+      "targetName": "Serine/threonine-protein kinase mTOR",
+      "targetOrganism": "Homo sapiens",
+      "curated": {
+        "actionType": "inhibitor",
+        "therapyClass": "small-molecule",
+        "mechanism": "Allosteric mTORC1 inhibitor acting through FKBP12.",
+        "indirect": false,
+        "note": "Action type, therapy class and mechanism text are curated from standard pharmacology, not retrieved. A potency measurement says how tightly a compound binds, not what binding does, so these cannot be derived from the activity records below."
+      },
+      "potency": {
+        "medianNm": 5,
+        "measurements": 7,
+        "types": [
+          "IC50"
+        ],
+        "testedRangeNm": [
+          3.6400000000000006,
+          302.0000000000001
+        ],
+        "minNm": 1.6,
+        "maxNm": 530,
+        "rangeBasis": "10th to 90th percentile of the retrieved measurements; the extremes are single assays of unlike kinds."
+      },
+      "evidence": {
+        "source": "ChEMBL",
+        "targetQuery": "https://www.ebi.ac.uk/chembl/api/data/target.json?target_components__accession=P42345",
+        "activityQuery": "https://www.ebi.ac.uk/chembl/api/data/activity.json?molecule_chembl_id=CHEMBL1908360&target_chembl_id=CHEMBL2842",
+        "documentCount": 7,
+        "documents": [
+          "CHEMBL4622845",
+          "CHEMBL5131375",
+          "CHEMBL5226297",
+          "CHEMBL5244238",
+          "CHEMBL5376013",
+          "CHEMBL5512615",
+          "CHEMBL6120936"
+        ],
+        "exampleAssays": [
+          {
+            "id": "CHEMBL4623294",
+            "description": "Inhibition of mTOR in HEK293 cells"
+          },
+          {
+            "id": "CHEMBL5131804",
+            "description": "Inhibition of mTOR (unknown origin)"
+          },
+          {
+            "id": "CHEMBL5227206",
+            "description": "Inhibition of human mTOR by western blot assay"
+          },
+          {
+            "id": "CHEMBL5245700",
+            "description": "Inhibition of mTOR (unknown origin)"
+          },
+          {
+            "id": "CHEMBL5380301",
+            "description": "Inhibition of mTOR (unknown origin) incubated for 1 hr by ELISA analysis"
+          },
+          {
+            "id": "CHEMBL5513493",
+            "description": "Inhibition of human mTORC1 incubated for 90 mins by Lanthascreen time-resolved FRET assay"
+          }
+        ],
+        "retrievedAt": "2026-09-22T06:04:13.076Z"
+      }
+    },
+    {
+      "drugId": "CHEMBL2396661",
+      "name": "ALPELISIB",
+      "prefName": "ALPELISIB",
+      "moleculeType": "Small molecule",
+      "maxPhase": "4.0",
+      "firstApproval": 2019,
+      "atc": [
+        "L01EM03"
+      ],
+      "smiles": "Cc1nc(NC(=O)N2CCC[C@H]2C(N)=O)sc1-c1ccnc(C(C)(C)C(F)(F)F)c1",
+      "target": "PIK3CA",
+      "targetUniprot": "P42336",
+      "targetChemblId": "CHEMBL4005",
+      "targetName": "Phosphatidylinositol 4,5-bisphosphate 3-kinase catalytic subunit alpha isoform",
+      "targetOrganism": "Homo sapiens",
+      "curated": {
+        "actionType": "inhibitor",
+        "therapyClass": "small-molecule",
+        "mechanism": "PI3K alpha-selective inhibitor.",
+        "indirect": false,
+        "note": "Action type, therapy class and mechanism text are curated from standard pharmacology, not retrieved. A potency measurement says how tightly a compound binds, not what binding does, so these cannot be derived from the activity records below."
+      },
+      "potency": {
+        "medianNm": 5,
+        "measurements": 24,
+        "types": [
+          "IC50"
+        ],
+        "testedRangeNm": [
+          4.18,
+          74
+        ],
+        "minNm": 1.7,
+        "maxNm": 200,
+        "rangeBasis": "10th to 90th percentile of the retrieved measurements; the extremes are single assays of unlike kinds."
+      },
+      "evidence": {
+        "source": "ChEMBL",
+        "targetQuery": "https://www.ebi.ac.uk/chembl/api/data/target.json?target_components__accession=P42336",
+        "activityQuery": "https://www.ebi.ac.uk/chembl/api/data/activity.json?molecule_chembl_id=CHEMBL2396661&target_chembl_id=CHEMBL4005",
+        "documentCount": 19,
+        "documents": [
+          "CHEMBL2396607",
+          "CHEMBL3603757",
+          "CHEMBL3608239",
+          "CHEMBL3860068",
+          "CHEMBL4028814",
+          "CHEMBL4706640",
+          "CHEMBL4715864",
+          "CHEMBL4725466",
+          "CHEMBL4732078",
+          "CHEMBL5209897",
+          "CHEMBL5210307",
+          "CHEMBL5365452",
+          "CHEMBL5365503",
+          "CHEMBL5385938",
+          "CHEMBL5537133",
+          "CHEMBL5579880",
+          "CHEMBL6071132",
+          "CHEMBL6071150",
+          "CHEMBL6177937"
+        ],
+        "exampleAssays": [
+          {
+            "id": "CHEMBL2400726",
+            "description": "Inhibition of N-terminal myristoylated P110alpha (unknown origin)-mediated AKT phosphorylation at Ser473 expressed in rat Rat1 cells by ELISA"
+          },
+          {
+            "id": "CHEMBL2400732",
+            "description": "Inhibition of P110alpha (unknown origin) using L-a-phosphatidylinositol as substrate by luminescence assay"
+          },
+          {
+            "id": "CHEMBL3606204",
+            "description": "Inhibition of myristoylated human P110alpha expressed in Rat1 cells assessed as inhibition of Akt phosphorylation at Serine 473 by Western blot analysis"
+          },
+          {
+            "id": "CHEMBL3606198",
+            "description": "Inhibition of P110alpha (unknown origin) by Kinase-Glo assay"
+          },
+          {
+            "id": "CHEMBL3611486",
+            "description": "Inhibition of PI3Kalpha (unknown origin)"
+          },
+          {
+            "id": "CHEMBL3861244",
+            "description": "Inhibition of recombinant PI3Kalpha (unknown origin) by KinaseGlo assay"
+          }
+        ],
+        "retrievedAt": "2026-09-22T06:04:13.076Z"
+      }
+    },
+    {
+      "drugId": "CHEMBL2325741",
+      "name": "CAPIVASERTIB",
+      "prefName": "CAPIVASERTIB",
+      "moleculeType": "Small molecule",
+      "maxPhase": "4.0",
+      "firstApproval": 2023,
+      "atc": [
+        "L01EX27"
+      ],
+      "smiles": "NC1(C(=O)N[C@@H](CCO)c2ccc(Cl)cc2)CCN(c2nc[nH]c3nccc2-3)CC1",
+      "target": "AKT1",
+      "targetUniprot": "P31749",
+      "targetChemblId": "CHEMBL4282",
+      "targetName": "RAC-alpha serine/threonine-protein kinase",
+      "targetOrganism": "Homo sapiens",
+      "curated": {
+        "actionType": "inhibitor",
+        "therapyClass": "small-molecule",
+        "mechanism": "ATP-competitive pan-AKT inhibitor.",
+        "indirect": false,
+        "note": "Action type, therapy class and mechanism text are curated from standard pharmacology, not retrieved. A potency measurement says how tightly a compound binds, not what binding does, so these cannot be derived from the activity records below."
+      },
+      "potency": {
+        "medianNm": 3.2,
+        "measurements": 13,
+        "types": [
+          "IC50"
+        ],
+        "testedRangeNm": [
+          1.4000000000000004,
+          22.94400000000001
+        ],
+        "minNm": 0.9,
+        "maxNm": 34,
+        "rangeBasis": "10th to 90th percentile of the retrieved measurements; the extremes are single assays of unlike kinds."
+      },
+      "evidence": {
+        "source": "ChEMBL",
+        "targetQuery": "https://www.ebi.ac.uk/chembl/api/data/target.json?target_components__accession=P31749",
+        "activityQuery": "https://www.ebi.ac.uk/chembl/api/data/activity.json?molecule_chembl_id=CHEMBL2325741&target_chembl_id=CHEMBL4282",
+        "documentCount": 13,
+        "documents": [
+          "CHEMBL2321772",
+          "CHEMBL3804794",
+          "CHEMBL4406807",
+          "CHEMBL4706498",
+          "CHEMBL4831560",
+          "CHEMBL5512615",
+          "CHEMBL5518247",
+          "CHEMBL5523678",
+          "CHEMBL5647698",
+          "CHEMBL5705908",
+          "CHEMBL5727709",
+          "CHEMBL5728953",
+          "CHEMBL6071130"
+        ],
+        "exampleAssays": [
+          {
+            "id": "CHEMBL2330886",
+            "description": "Inhibition of recombinant Akt1 (unknown origin) using 5-FAM-labeled peptide as substrate after 1 hr by caliper off-chip incubation mobility shift assay"
+          },
+          {
+            "id": "CHEMBL3807471",
+            "description": "Inhibition of Akt1 (unknown origin) expressed in Escherichia coli using peptide substrate after 1 hr by HTRF assay"
+          },
+          {
+            "id": "CHEMBL4407340",
+            "description": "Inhibition of human Akt1 expressed in Escherichia coli using STK Substrate 2-biotin as substrate incubated for 1 hr by HTRF assay"
+          },
+          {
+            "id": "CHEMBL4708150",
+            "description": "Inhibition of Akt-1 (unknown origin)"
+          },
+          {
+            "id": "CHEMBL4834348",
+            "description": "Inhibition of AKT1 (unknown origin) incubated for 40 mins in presence of ATP by Kinase-Glo reagent based luminescence analysis"
+          },
+          {
+            "id": "CHEMBL5513477",
+            "description": "Inhibition of AKT1 (unknown origin)"
+          }
+        ],
+        "retrievedAt": "2026-09-22T06:04:13.076Z"
+      }
+    },
+    {
+      "drugId": "CHEMBL2364611",
+      "name": "GALUNISERTIB",
+      "prefName": "GALUNISERTIB",
+      "moleculeType": "Small molecule",
+      "maxPhase": "2.0",
+      "firstApproval": null,
+      "atc": [],
+      "smiles": "Cc1cccc(-c2nn3c(c2-c2ccnc4ccc(C(N)=O)cc24)CCC3)n1",
+      "target": "TGFBR1",
+      "targetUniprot": "P36897",
+      "targetChemblId": "CHEMBL4439",
+      "targetName": "TGF-beta receptor type-1",
+      "targetOrganism": "Homo sapiens",
+      "curated": {
+        "actionType": "inhibitor",
+        "therapyClass": "small-molecule",
+        "mechanism": "ATP-competitive inhibitor of the TGF-beta receptor I kinase (ALK5).",
+        "indirect": false,
+        "note": "Action type, therapy class and mechanism text are curated from standard pharmacology, not retrieved. A potency measurement says how tightly a compound binds, not what binding does, so these cannot be derived from the activity records below."
+      },
+      "potency": {
+        "medianNm": 119,
+        "measurements": 18,
+        "types": [
+          "IC50"
+        ],
+        "testedRangeNm": [
+          50.730000000000004,
+          181.40000000000003
+        ],
+        "minNm": 4.1,
+        "maxNm": 290,
+        "rangeBasis": "10th to 90th percentile of the retrieved measurements; the extremes are single assays of unlike kinds."
+      },
+      "evidence": {
+        "source": "ChEMBL",
+        "targetQuery": "https://www.ebi.ac.uk/chembl/api/data/target.json?target_components__accession=P36897",
+        "activityQuery": "https://www.ebi.ac.uk/chembl/api/data/activity.json?molecule_chembl_id=CHEMBL2364611&target_chembl_id=CHEMBL4439",
+        "documentCount": 16,
+        "documents": [
+          "CHEMBL3632597",
+          "CHEMBL4184264",
+          "CHEMBL4270481",
+          "CHEMBL4330088",
+          "CHEMBL4359846",
+          "CHEMBL4433262",
+          "CHEMBL4613227",
+          "CHEMBL4732251",
+          "CHEMBL4842363",
+          "CHEMBL5214926",
+          "CHEMBL5233230",
+          "CHEMBL5500337",
+          "CHEMBL5512657",
+          "CHEMBL6109118",
+          "CHEMBL6182878",
+          "CHEMBL6182942"
+        ],
+        "exampleAssays": [
+          {
+            "id": "CHEMBL3635884",
+            "description": "Inhibition of human recombinant GST-fused ALK5 expressed in Sf9 insect cells using casein as substrate by proprietary radioisotopic protein kinase assay"
+          },
+          {
+            "id": "CHEMBL4188411",
+            "description": "Inhibition of human His-tagged TGFbetaR1 T204D mutant expressed in Sf9 insect cells after 1 hr by HTRF assay"
+          },
+          {
+            "id": "CHEMBL4270674",
+            "description": "Inhibition of human ALK5 expressed in Sf9 insect cells using casein as substrate in presence of [gamma-33P]ATP"
+          },
+          {
+            "id": "CHEMBL4331755",
+            "description": "Inhibition of TGFBR1 (unknown origin)"
+          },
+          {
+            "id": "CHEMBL4361670",
+            "description": "Inhibition of human recombinant GST-tagged ALK5 expressed in Sf9 insect cells using casein as substrate incubated for 60 mins in presence of [33P]-ATP by radiometric assay"
+          },
+          {
+            "id": "CHEMBL4434540",
+            "description": "Inhibition of human recombinant GST-tagged ALK5 expressed in Sf9 insect cells using casein as substrate incubated for 60 mins in presence of [33P]-ATP by scintillation counting method"
+          }
+        ],
+        "retrievedAt": "2026-09-22T06:04:13.076Z"
+      }
+    },
+    {
+      "drugId": "CHEMBL189963",
+      "name": "PALBOCICLIB",
+      "prefName": "PALBOCICLIB",
+      "moleculeType": "Small molecule",
+      "maxPhase": "4.0",
+      "firstApproval": 2015,
+      "atc": [
+        "L01EF01"
+      ],
+      "smiles": "CC(=O)c1c(C)c2cnc(Nc3ccc(N4CCNCC4)cn3)nc2n(C2CCCC2)c1=O",
+      "target": "CDK4",
+      "targetUniprot": "P11802",
+      "targetChemblId": "CHEMBL331",
+      "targetName": "Cyclin-dependent kinase 4",
+      "targetOrganism": "Homo sapiens",
+      "curated": {
+        "actionType": "inhibitor",
+        "therapyClass": "small-molecule",
+        "mechanism": "Selective CDK4/6 inhibitor.",
+        "indirect": false,
+        "note": "Action type, therapy class and mechanism text are curated from standard pharmacology, not retrieved. A potency measurement says how tightly a compound binds, not what binding does, so these cannot be derived from the activity records below."
+      },
+      "potency": {
+        "medianNm": 20,
+        "measurements": 33,
+        "types": [
+          "IC50"
+        ],
+        "testedRangeNm": [
+          10.2,
+          368.0000000000001
+        ],
+        "minNm": 8.2,
+        "maxNm": 47000,
+        "rangeBasis": "10th to 90th percentile of the retrieved measurements; the extremes are single assays of unlike kinds."
+      },
+      "evidence": {
+        "source": "ChEMBL",
+        "targetQuery": "https://www.ebi.ac.uk/chembl/api/data/target.json?target_components__accession=P11802",
+        "activityQuery": "https://www.ebi.ac.uk/chembl/api/data/activity.json?molecule_chembl_id=CHEMBL189963&target_chembl_id=CHEMBL331",
+        "documentCount": 15,
+        "documents": [
+          "CHEMBL1268954",
+          "CHEMBL3232894",
+          "CHEMBL3774312",
+          "CHEMBL3865822",
+          "CHEMBL4270504",
+          "CHEMBL4346699",
+          "CHEMBL4673178",
+          "CHEMBL5131375",
+          "CHEMBL5131376",
+          "CHEMBL5149968",
+          "CHEMBL5230096",
+          "CHEMBL5252647",
+          "CHEMBL5444388",
+          "CHEMBL5579822",
+          "CHEMBL6134823"
+        ],
+        "exampleAssays": [
+          {
+            "id": "CHEMBL1274436",
+            "description": "Inhibition of CDK4"
+          },
+          {
+            "id": "CHEMBL3242593",
+            "description": "Inhibition of CDK4 in human MOLM13 cells assessed as inhibition of Rb phosphorylation at Ser780 after 24 hrs"
+          },
+          {
+            "id": "CHEMBL3776183",
+            "description": "Inhibition of CDK4 (unknown origin)"
+          },
+          {
+            "id": "CHEMBL3866832",
+            "description": "Inhibition of CDK4 (unknown origin) using histone H1 as substrate after 10 mins in presence of [gamma32P]ATP"
+          },
+          {
+            "id": "CHEMBL4271323",
+            "description": "Inhibition of CDK4 (unknown origin)"
+          },
+          {
+            "id": "CHEMBL4348717",
+            "description": "Inhibition of CDK4 (unknown origin)"
+          }
+        ],
+        "retrievedAt": "2026-09-22T06:04:13.076Z"
+      }
+    },
+    {
+      "drugId": "CHEMBL3545110",
+      "name": "RIBOCICLIB",
+      "prefName": "RIBOCICLIB",
+      "moleculeType": "Small molecule",
+      "maxPhase": "4.0",
+      "firstApproval": 2017,
+      "atc": [],
+      "smiles": "CN(C)C(=O)c1cc2cnc(Nc3ccc(N4CCNCC4)cn3)nc2n1C1CCCC1",
+      "target": "CDK4",
+      "targetUniprot": "P11802",
+      "targetChemblId": "CHEMBL331",
+      "targetName": "Cyclin-dependent kinase 4",
+      "targetOrganism": "Homo sapiens",
+      "curated": {
+        "actionType": "inhibitor",
+        "therapyClass": "small-molecule",
+        "mechanism": "Selective CDK4/6 inhibitor.",
+        "indirect": false,
+        "note": "Action type, therapy class and mechanism text are curated from standard pharmacology, not retrieved. A potency measurement says how tightly a compound binds, not what binding does, so these cannot be derived from the activity records below."
+      },
+      "potency": {
+        "medianNm": 10,
+        "measurements": 11,
+        "types": [
+          "IC50"
+        ],
+        "testedRangeNm": [
+          2.14,
+          10
+        ],
+        "minNm": 2,
+        "maxNm": 23.62,
+        "rangeBasis": "10th to 90th percentile of the retrieved measurements; the extremes are single assays of unlike kinds."
+      },
+      "evidence": {
+        "source": "ChEMBL",
+        "targetQuery": "https://www.ebi.ac.uk/chembl/api/data/target.json?target_components__accession=P11802",
+        "activityQuery": "https://www.ebi.ac.uk/chembl/api/data/activity.json?molecule_chembl_id=CHEMBL3545110&target_chembl_id=CHEMBL331",
+        "documentCount": 11,
+        "documents": [
+          "CHEMBL3603804",
+          "CHEMBL3638874",
+          "CHEMBL4270504",
+          "CHEMBL4346699",
+          "CHEMBL5149968",
+          "CHEMBL5210307",
+          "CHEMBL5226297",
+          "CHEMBL5579822",
+          "CHEMBL5727606",
+          "CHEMBL6134823",
+          "CHEMBL6182851"
+        ],
+        "exampleAssays": [
+          {
+            "id": "CHEMBL3607087",
+            "description": "Inhibition of CDK4 (unknown origin)"
+          },
+          {
+            "id": "CHEMBL3705798",
+            "description": "TR-FRET (Time-Resolved-Fluorescence Energy Transfer) Endpoint Assay: A 384-well microtiter Lance TR-FRET (time-resolved-fluorescence energy transfer) endpoint assay was used for CDK4/cyclin D1 kinase activity measurements. The same assay was used for IC50 determination of small molecule inhibitors. In general, the kinase reactions were carried out in 30 uL volumes in the reaction solution containing the following: 2 uL compound (in 20% DMSO), 18 uL CDK4/cyclin D1 in Assay Buffer (50 mM HEPES, pH 7.5, 5 mM MgCl2, 2 mM MnCl2, 1 mM DTT, 0.05% BSA, 0.02% Tween-20), 10 uL of the mixture of pRb152 and ATP. The final reaction mixture contains compound (inhibitor) with the concentration varying from 0.005-10 uM, 2% DMSO, 0.3 nM CDK4/cyclin D1, 175 nM pRb152, and 3 uM ATP (Amersham Pharmacia, Cat. No. 27-2056-01). All reactions were run at room temperature in 384-well white flat-bottom OptiPlates (Perkin Elmer, Cat. No. 6007290) for 60 min then were quenched by the addition of 10 uL of 120 mM EDTA."
+          },
+          {
+            "id": "CHEMBL4271323",
+            "description": "Inhibition of CDK4 (unknown origin)"
+          },
+          {
+            "id": "CHEMBL4348717",
+            "description": "Inhibition of CDK4 (unknown origin)"
+          },
+          {
+            "id": "CHEMBL5150431",
+            "description": "Inhibition of CDK4 (unknown origin)"
+          },
+          {
+            "id": "CHEMBL5210388",
+            "description": "Affinity Biochemical interaction (Enzymatic activity assay) EUB0000686a CDK4"
+          }
+        ],
+        "retrievedAt": "2026-09-22T06:04:13.076Z"
+      }
+    },
+    {
+      "drugId": "CHEMBL3137309",
+      "name": "VENETOCLAX",
+      "prefName": "VENETOCLAX",
+      "moleculeType": "Small molecule",
+      "maxPhase": "4.0",
+      "firstApproval": 2016,
+      "atc": [
+        "L01XX52"
+      ],
+      "smiles": "CC1(C)CCC(CN2CCN(c3ccc(C(=O)NS(=O)(=O)c4ccc(NCC5CCOCC5)c([N+](=O)[O-])c4)c(Oc4cnc5[nH]ccc5c4)c3)CC2)=C(c2ccc(Cl)cc2)C1",
+      "target": "BCL2",
+      "targetUniprot": "P10415",
+      "targetChemblId": "CHEMBL4860",
+      "targetName": "Apoptosis regulator Bcl-2",
+      "targetOrganism": "Homo sapiens",
+      "curated": {
+        "actionType": "inhibitor",
+        "therapyClass": "small-molecule",
+        "mechanism": "Selective BH3-mimetic BCL-2 inhibitor.",
+        "indirect": false,
+        "note": "Action type, therapy class and mechanism text are curated from standard pharmacology, not retrieved. A potency measurement says how tightly a compound binds, not what binding does, so these cannot be derived from the activity records below."
+      },
+      "potency": {
+        "medianNm": 4.845,
+        "measurements": 18,
+        "types": [
+          "IC50",
+          "Ki"
+        ],
+        "testedRangeNm": [
+          0.036,
+          70.70000000000002
+        ],
+        "minNm": 0.018,
+        "maxNm": 230,
+        "rangeBasis": "10th to 90th percentile of the retrieved measurements; the extremes are single assays of unlike kinds."
+      },
+      "evidence": {
+        "source": "ChEMBL",
+        "targetQuery": "https://www.ebi.ac.uk/chembl/api/data/target.json?target_components__accession=P10415",
+        "activityQuery": "https://www.ebi.ac.uk/chembl/api/data/activity.json?molecule_chembl_id=CHEMBL3137309&target_chembl_id=CHEMBL4860",
+        "documentCount": 10,
+        "documents": [
+          "CHEMBL4177735",
+          "CHEMBL4261603",
+          "CHEMBL4330103",
+          "CHEMBL4825763",
+          "CHEMBL5096156",
+          "CHEMBL5506028",
+          "CHEMBL5729271",
+          "CHEMBL3886149",
+          "CHEMBL4376822",
+          "CHEMBL5107957"
+        ],
+        "exampleAssays": [
+          {
+            "id": "CHEMBL4182824",
+            "description": "Displacement of Bax-derived peptide from Bcl-2 (unknown origin) by fluorescence polarization assay"
+          },
+          {
+            "id": "CHEMBL4264659",
+            "description": "Inhibition of FAM-labelled Bax binding to Bcl2 (unknown origin) after 30 mins by fluorescence polarization assay"
+          },
+          {
+            "id": "CHEMBL4332203",
+            "description": "Inhibition of FAM-Bid peptide binding to Bcl2 (unknown origin) by fluorescence polarization assay"
+          },
+          {
+            "id": "CHEMBL4828452",
+            "description": "Displacement of Bak derived peptide from Bcl-2 (unknown origin) measured after 15 mins by microplate reader assay"
+          },
+          {
+            "id": "CHEMBL5096798",
+            "description": "Inhibition of BCL-2 (unknown origin)"
+          },
+          {
+            "id": "CHEMBL5510211",
+            "description": "Inhibition of Bcl-2 (unknown origin) using (Ac-GQVGRQLAIIGDK (FITC) INR-amide) as substrate preincubated for 30 mins followed by substrate addition and measured after 60 mins by TR-FRET assay"
+          }
+        ],
+        "retrievedAt": "2026-09-22T06:04:13.076Z"
+      }
+    },
+    {
+      "drugId": "CHEMBL1289926",
+      "name": "AXITINIB",
+      "prefName": "AXITINIB",
+      "moleculeType": "Small molecule",
+      "maxPhase": "4.0",
+      "firstApproval": 2012,
+      "atc": [
+        "L01EK01"
+      ],
+      "smiles": "CNC(=O)c1ccccc1Sc1ccc2c(/C=C/c3ccccn3)n[nH]c2c1",
+      "target": "KDR",
+      "targetUniprot": "P35968",
+      "targetChemblId": "CHEMBL279",
+      "targetName": "Vascular endothelial growth factor receptor 2",
+      "targetOrganism": "Homo sapiens",
+      "curated": {
+        "actionType": "inhibitor",
+        "therapyClass": "small-molecule",
+        "mechanism": "Selective VEGFR1/2/3 tyrosine kinase inhibitor.",
+        "indirect": false,
+        "note": "Action type, therapy class and mechanism text are curated from standard pharmacology, not retrieved. A potency measurement says how tightly a compound binds, not what binding does, so these cannot be derived from the activity records below."
+      },
+      "potency": {
+        "medianNm": 0.2,
+        "measurements": 9,
+        "types": [
+          "IC50",
+          "Ki"
+        ],
+        "testedRangeNm": [
+          0.08400000000000002,
+          10.840000000000007
+        ],
+        "minNm": 0.02,
+        "maxNm": 39,
+        "rangeBasis": "10th to 90th percentile of the retrieved measurements; the extremes are single assays of unlike kinds."
+      },
+      "evidence": {
+        "source": "ChEMBL",
+        "targetQuery": "https://www.ebi.ac.uk/chembl/api/data/target.json?target_components__accession=P35968",
+        "activityQuery": "https://www.ebi.ac.uk/chembl/api/data/activity.json?molecule_chembl_id=CHEMBL1289926&target_chembl_id=CHEMBL279",
+        "documentCount": 9,
+        "documents": [
+          "CHEMBL1287660",
+          "CHEMBL4028913",
+          "CHEMBL4270503",
+          "CHEMBL4304778",
+          "CHEMBL4359898",
+          "CHEMBL5620377",
+          "CHEMBL5726103",
+          "CHEMBL3880421",
+          "CHEMBL5727387"
+        ],
+        "exampleAssays": [
+          {
+            "id": "CHEMBL1292980",
+            "description": "Inhibition of recombinant VEGFR2 after 1 hr by fluorescence polarization assay"
+          },
+          {
+            "id": "CHEMBL4033254",
+            "description": "Inhibition of human VEGFR2"
+          },
+          {
+            "id": "CHEMBL4271314",
+            "description": "Inhibition of VEGFR2 (unknown origin)"
+          },
+          {
+            "id": "CHEMBL4307050",
+            "description": "Inhibition of VEGFR2 (unknown origin)"
+          },
+          {
+            "id": "CHEMBL4363095",
+            "description": "Inhibition of recombinant human N-terminal GST-tagged VEGFR2 (805 to 1356 residues) expressed in baculovirus infected Sf9 insect cells using Poly (4:1 Glu, Tyr) as substrate incubated for 45 mins by kinase-Glo luminescent assay"
+          },
+          {
+            "id": "CHEMBL5621867",
+            "description": "Inhibition of VEGFR-2 (unknown origin) expressed in PAE cells assessed as reduction in VEGFA induced protein phosphorylation preincubated for 1 hr followed by VEGFA stimulation for 5 to 10 mins by ELISA"
+          }
+        ],
+        "retrievedAt": "2026-09-22T06:04:13.076Z"
+      }
+    },
+    {
+      "drugId": "CHEMBL535",
+      "name": "SUNITINIB",
+      "prefName": "SUNITINIB",
+      "moleculeType": "Small molecule",
+      "maxPhase": "4.0",
+      "firstApproval": 2006,
+      "atc": [
+        "L01EX01"
+      ],
+      "smiles": "CCN(CC)CCNC(=O)c1c(C)[nH]c(/C=C2\\C(=O)Nc3ccc(F)cc32)c1C",
+      "target": "KDR",
+      "targetUniprot": "P35968",
+      "targetChemblId": "CHEMBL279",
+      "targetName": "Vascular endothelial growth factor receptor 2",
+      "targetOrganism": "Homo sapiens",
+      "curated": {
+        "actionType": "inhibitor",
+        "therapyClass": "small-molecule",
+        "mechanism": "Multi-targeted receptor tyrosine kinase inhibitor.",
+        "indirect": false,
+        "note": "Action type, therapy class and mechanism text are curated from standard pharmacology, not retrieved. A potency measurement says how tightly a compound binds, not what binding does, so these cannot be derived from the activity records below."
+      },
+      "potency": {
+        "medianNm": 37.5,
+        "measurements": 72,
+        "types": [
+          "IC50",
+          "Ki"
+        ],
+        "testedRangeNm": [
+          8.075000000000001,
+          739.0999999999996
+        ],
+        "minNm": 0.4,
+        "maxNm": 83200,
+        "rangeBasis": "10th to 90th percentile of the retrieved measurements; the extremes are single assays of unlike kinds."
+      },
+      "evidence": {
+        "source": "ChEMBL",
+        "targetQuery": "https://www.ebi.ac.uk/chembl/api/data/target.json?target_components__accession=P35968",
+        "activityQuery": "https://www.ebi.ac.uk/chembl/api/data/activity.json?molecule_chembl_id=CHEMBL535&target_chembl_id=CHEMBL279",
+        "documentCount": 63,
+        "documents": [
+          "CHEMBL1136732",
+          "CHEMBL1141091",
+          "CHEMBL1144621",
+          "CHEMBL1145636",
+          "CHEMBL1149823",
+          "CHEMBL1153284",
+          "CHEMBL1155389",
+          "CHEMBL1157126",
+          "CHEMBL1177651",
+          "CHEMBL1240340",
+          "CHEMBL1250424",
+          "CHEMBL1255211",
+          "CHEMBL1275399",
+          "CHEMBL1287660",
+          "CHEMBL1817643",
+          "CHEMBL1914337",
+          "CHEMBL1926631",
+          "CHEMBL1955771",
+          "CHEMBL2034932",
+          "CHEMBL2046359",
+          "CHEMBL2086224",
+          "CHEMBL2331095",
+          "CHEMBL2331499",
+          "CHEMBL2429742",
+          "CHEMBL3286190"
+        ],
+        "exampleAssays": [
+          {
+            "id": "CHEMBL819556",
+            "description": "Inhibition of Vascular endothelial growth factor receptor 2"
+          },
+          {
+            "id": "CHEMBL871626",
+            "description": "Inhibitory concentration against human KDR kinase expressed in NIH3T3 cells with 4 uM Biotin-Ahx-AEEEYFFLFA-amide at ambient temperature for 1 hr"
+          },
+          {
+            "id": "CHEMBL884695",
+            "description": "Cellular inhibition of VEGF induced human KDR phosphorylation in 3T3 murine fibroblasts"
+          },
+          {
+            "id": "CHEMBL887535",
+            "description": "Inhibition of KDR"
+          },
+          {
+            "id": "CHEMBL924778",
+            "description": "Inhibition of human VEGFR2-dependent ERK phosphorylation in HUVEC"
+          },
+          {
+            "id": "CHEMBL924779",
+            "description": "Inhibition of human VEGFR2-dependent HUVEC proliferation"
+          }
+        ],
+        "retrievedAt": "2026-09-22T06:04:13.076Z"
+      }
+    },
+    {
+      "drugId": "CHEMBL18442",
+      "name": "PLERIXAFOR",
+      "prefName": "PLERIXAFOR",
+      "moleculeType": "Small molecule",
+      "maxPhase": "4.0",
+      "firstApproval": 2008,
+      "atc": [
+        "L03AX16"
+      ],
+      "smiles": "c1cc(CN2CCCNCCNCCCNCC2)ccc1CN1CCCNCCNCCCNCC1",
+      "target": "CXCR4",
+      "targetUniprot": "P61073",
+      "targetChemblId": "CHEMBL2107",
+      "targetName": "C-X-C chemokine receptor type 4",
+      "targetOrganism": "Homo sapiens",
+      "curated": {
+        "actionType": "antagonist",
+        "therapyClass": "small-molecule",
+        "mechanism": "Reversible CXCR4 antagonist.",
+        "indirect": false,
+        "note": "Action type, therapy class and mechanism text are curated from standard pharmacology, not retrieved. A potency measurement says how tightly a compound binds, not what binding does, so these cannot be derived from the activity records below."
+      },
+      "potency": {
+        "medianNm": 320,
+        "measurements": 83,
+        "types": [
+          "IC50",
+          "Ki"
+        ],
+        "testedRangeNm": [
+          19.88000000000001,
+          6360
+        ],
+        "minNm": 0.81,
+        "maxNm": 63000,
+        "rangeBasis": "10th to 90th percentile of the retrieved measurements; the extremes are single assays of unlike kinds."
+      },
+      "evidence": {
+        "source": "ChEMBL",
+        "targetQuery": "https://www.ebi.ac.uk/chembl/api/data/target.json?target_components__accession=P61073",
+        "activityQuery": "https://www.ebi.ac.uk/chembl/api/data/activity.json?molecule_chembl_id=CHEMBL18442&target_chembl_id=CHEMBL2107",
+        "documentCount": 22,
+        "documents": [
+          "CHEMBL1156505",
+          "CHEMBL1151747",
+          "CHEMBL1152739",
+          "CHEMBL1649540",
+          "CHEMBL2176887",
+          "CHEMBL3853330",
+          "CHEMBL4024793",
+          "CHEMBL4028895",
+          "CHEMBL4130393",
+          "CHEMBL4196046",
+          "CHEMBL4382250",
+          "CHEMBL4393672",
+          "CHEMBL4428122",
+          "CHEMBL4706482",
+          "CHEMBL4765416",
+          "CHEMBL5154729",
+          "CHEMBL5230085",
+          "CHEMBL5247608",
+          "CHEMBL5260798",
+          "CHEMBL5512691",
+          "CHEMBL5620349",
+          "CHEMBL1156482"
+        ],
+        "exampleAssays": [
+          {
+            "id": "CHEMBL977795",
+            "description": "Displacement of [125I]SDF1alpha from CXCR4 expressed in CHOK1 cells"
+          },
+          {
+            "id": "CHEMBL958139",
+            "description": "Displacement of [125I]CXCL12 from CXCR4 in human CEM cells"
+          },
+          {
+            "id": "CHEMBL1031464",
+            "description": "Antagonist activity at CXCR4 in human Jurkat cells assessed as inhibition of SDF1-induced cell migration"
+          },
+          {
+            "id": "CHEMBL1031463",
+            "description": "Displacement of [125I]SDF1alpha from CXCR4 in human HL60 cells"
+          },
+          {
+            "id": "CHEMBL1666318",
+            "description": "Inhibition of Mab 12G5 binding to wild type CXCR4 expressed in HEK293 cells"
+          },
+          {
+            "id": "CHEMBL1666319",
+            "description": "Inhibition of Mab 12G5 binding to CXCR4 V99A mutant expressed in HEK293 cells"
+          }
+        ],
+        "retrievedAt": "2026-09-22T06:04:13.076Z"
+      }
+    },
+    {
+      "drugId": "CHEMBL1201583",
+      "name": "BEVACIZUMAB",
+      "prefName": "BEVACIZUMAB",
+      "moleculeType": "Antibody",
+      "maxPhase": "4.0",
+      "firstApproval": 2004,
+      "atc": [
+        "L01FG01",
+        "S01LA08"
+      ],
+      "smiles": null,
+      "target": "VEGFA",
+      "targetUniprot": "P15692",
+      "targetChemblId": "CHEMBL1783",
+      "targetName": "Vascular endothelial growth factor A, long form",
+      "targetOrganism": "Homo sapiens",
+      "curated": {
+        "actionType": "antagonist",
+        "therapyClass": "antibody",
+        "mechanism": "Humanised monoclonal antibody sequestering VEGF-A.",
+        "indirect": false,
+        "note": "Action type, therapy class and mechanism text are curated from standard pharmacology, not retrieved. A potency measurement says how tightly a compound binds, not what binding does, so these cannot be derived from the activity records below."
+      },
+      "potency": {
+        "medianNm": null,
+        "measurements": 0,
+        "types": [],
+        "testedRangeNm": null,
+        "minNm": null,
+        "maxNm": null,
+        "rangeBasis": null
+      },
+      "evidence": {
+        "source": "ChEMBL",
+        "targetQuery": "https://www.ebi.ac.uk/chembl/api/data/target.json?target_components__accession=P15692",
+        "activityQuery": "https://www.ebi.ac.uk/chembl/api/data/activity.json?molecule_chembl_id=CHEMBL1201583&target_chembl_id=CHEMBL1783",
+        "documentCount": 0,
+        "documents": [],
+        "exampleAssays": [],
+        "retrievedAt": "2026-09-22T06:04:13.076Z"
+      }
+    },
+    {
+      "drugId": "CHEMBL1237022",
+      "name": "TOCILIZUMAB",
+      "prefName": "TOCILIZUMAB",
+      "moleculeType": "Antibody",
+      "maxPhase": "4.0",
+      "firstApproval": 2005,
+      "atc": [
+        "L04AC07"
+      ],
+      "smiles": null,
+      "target": "IL6R",
+      "targetUniprot": "P08887",
+      "targetChemblId": "CHEMBL2364155",
+      "targetName": "Interleukin-6 receptor subunit alpha",
+      "targetOrganism": "Homo sapiens",
+      "curated": {
+        "actionType": "antagonist",
+        "therapyClass": "antibody",
+        "mechanism": "Humanised monoclonal antibody against the IL-6 receptor.",
+        "indirect": false,
+        "indirectNote": null,
+        "potencyMeasuredAgainst": {
+          "name": "Interleukin-6 receptor subunit alpha",
+          "uniprot": "P08887",
+          "chemblId": "CHEMBL2364155"
+        },
+        "appliedToModelNode": "IL6R",
+        "note": "Action type, therapy class and mechanism text are curated from standard pharmacology, not retrieved. A potency measurement says how tightly a compound binds, not what binding does, so these cannot be derived from the activity records below."
+      },
+      "potency": {
+        "medianNm": null,
+        "measurements": 0,
+        "types": [],
+        "testedRangeNm": null,
+        "minNm": null,
+        "maxNm": null,
+        "rangeBasis": null
+      },
+      "evidence": {
+        "source": "ChEMBL",
+        "targetQuery": "https://www.ebi.ac.uk/chembl/api/data/target.json?target_components__accession=P08887",
+        "activityQuery": "https://www.ebi.ac.uk/chembl/api/data/activity.json?molecule_chembl_id=CHEMBL1237022&target_chembl_id=CHEMBL2364155",
+        "documentCount": 0,
+        "documents": [],
+        "exampleAssays": [],
+        "retrievedAt": "2026-09-22T06:20:52.743Z"
+      }
+    },
+    {
+      "drugId": "CHEMBL3707227",
+      "name": "ATEZOLIZUMAB",
+      "prefName": "ATEZOLIZUMAB",
+      "moleculeType": "Antibody",
+      "maxPhase": "4.0",
+      "firstApproval": 2016,
+      "atc": [
+        "L01FF05"
+      ],
+      "smiles": null,
+      "target": "CD274",
+      "targetUniprot": "Q9NZQ7",
+      "targetChemblId": "CHEMBL3580522",
+      "targetName": "Programmed cell death 1 ligand 1",
+      "targetOrganism": "Homo sapiens",
+      "curated": {
+        "actionType": "antagonist",
+        "therapyClass": "antibody",
+        "mechanism": "Monoclonal antibody blocking PD-L1.",
+        "indirect": false,
+        "indirectNote": null,
+        "potencyMeasuredAgainst": {
+          "name": "Programmed cell death 1 ligand 1",
+          "uniprot": "Q9NZQ7",
+          "chemblId": "CHEMBL3580522"
+        },
+        "appliedToModelNode": "CD274",
+        "note": "Action type, therapy class and mechanism text are curated from standard pharmacology, not retrieved. A potency measurement says how tightly a compound binds, not what binding does, so these cannot be derived from the activity records below."
+      },
+      "potency": {
+        "medianNm": null,
+        "measurements": 0,
+        "types": [],
+        "testedRangeNm": null,
+        "minNm": null,
+        "maxNm": null,
+        "rangeBasis": null
+      },
+      "evidence": {
+        "source": "ChEMBL",
+        "targetQuery": "https://www.ebi.ac.uk/chembl/api/data/target.json?target_components__accession=Q9NZQ7",
+        "activityQuery": "https://www.ebi.ac.uk/chembl/api/data/activity.json?molecule_chembl_id=CHEMBL3707227&target_chembl_id=CHEMBL3580522",
+        "documentCount": 0,
+        "documents": [],
+        "exampleAssays": [],
+        "retrievedAt": "2026-09-22T06:20:52.743Z"
+      }
+    },
+    {
+      "drugId": "CHEMBL1201581",
+      "name": "INFLIXIMAB",
+      "prefName": "INFLIXIMAB",
+      "moleculeType": "Antibody",
+      "maxPhase": "4.0",
+      "firstApproval": 1998,
+      "atc": [
+        "L04AB02"
+      ],
+      "smiles": null,
+      "target": "TNF",
+      "targetUniprot": "P01375",
+      "targetChemblId": "CHEMBL1825",
+      "targetName": "Tumor necrosis factor",
+      "targetOrganism": "Homo sapiens",
+      "curated": {
+        "actionType": "antagonist",
+        "therapyClass": "antibody",
+        "mechanism": "Chimeric monoclonal antibody neutralising TNF-alpha.",
+        "indirect": false,
+        "indirectNote": null,
+        "potencyMeasuredAgainst": {
+          "name": "Tumor necrosis factor",
+          "uniprot": "P01375",
+          "chemblId": "CHEMBL1825"
+        },
+        "appliedToModelNode": "TNF",
+        "note": "Action type, therapy class and mechanism text are curated from standard pharmacology, not retrieved. A potency measurement says how tightly a compound binds, not what binding does, so these cannot be derived from the activity records below."
+      },
+      "potency": {
+        "medianNm": null,
+        "measurements": 0,
+        "types": [],
+        "testedRangeNm": null,
+        "minNm": null,
+        "maxNm": null,
+        "rangeBasis": null
+      },
+      "evidence": {
+        "source": "ChEMBL",
+        "targetQuery": "https://www.ebi.ac.uk/chembl/api/data/target.json?target_components__accession=P01375",
+        "activityQuery": "https://www.ebi.ac.uk/chembl/api/data/activity.json?molecule_chembl_id=CHEMBL1201581&target_chembl_id=CHEMBL1825",
+        "documentCount": 0,
+        "documents": [],
+        "exampleAssays": [],
+        "retrievedAt": "2026-09-22T06:20:52.743Z"
+      }
+    }
+  ],
+  "problems": [
+    "BEVACIZUMAB: no usable potency measurement against CHEMBL1783.",
+    "TOCILIZUMAB: no usable potency measurement against CHEMBL2364155.",
+    "ATEZOLIZUMAB: no usable potency measurement against CHEMBL3580522.",
+    "INFLIXIMAB: no usable potency measurement against CHEMBL1825.",
+    "RUXOLITINIB: no ChEMBL molecule record."
+  ]
+}

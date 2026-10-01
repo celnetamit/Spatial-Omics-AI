@@ -1,0 +1,923 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens.
+ *
+ * The categorical, sequential, diverging and status values are the validated
+ * reference palette: eight hues in a fixed order whose adjacent pairs clear the
+ * colour-vision-deficiency separation floor in both modes. Light and dark are
+ * separate *selected* steps of the same hues against their own surface, not an
+ * automatic inversion — an inverted palette lands outside the lightness band
+ * and stops being distinguishable, which is the thing the order was chosen for.
+ *
+ * Verified with the palette validator against both surfaces:
+ *   dark  (#1a1a19): all checks pass, worst adjacent CVD ΔE 8.4
+ *   light (#fcfcfb): all checks pass, worst adjacent CVD ΔE 9.1; three slots
+ *                    sit below 3:1 on the light surface, so anything using them
+ *                    carries a visible label or a table view.
+ *
+ * The lab defaults to dark. A tissue map is a dense field of small marks and it
+ * reads better against a dark plane, which is also what every imaging tool a
+ * user of this lab already knows does.
+ */
+
+/*
+ * The typeface ships with the lab.
+ *
+ * `system-ui` was the stack, which means the product looked like a different
+ * product on every platform — and on Linux it resolved to DejaVu Sans, whose
+ * proportions and open apertures are a decade older than anything else on the
+ * screen. A tool people read numbers off all day should not leave its type to
+ * whatever the host happens to have.
+ *
+ * Inter, latin subset, weight axis only: 48 KB, self-hosted, so it is identical
+ * everywhere, needs no third-party request at runtime, and works in an air-gapped
+ * deployment. `font-display: swap` keeps first paint immediate.
+ */
+@font-face {
+  font-family: 'Inter Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('@fontsource-variable/inter/files/inter-latin-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+@theme {
+  --font-sans: 'Inter Variable', Inter, -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, monospace;
+}
+
+/*
+ * The type scale.
+ *
+ * What was here before was nine sizes between 10px and 14px — 208 uses inside a
+ * four-pixel range — with the page heading at 16px and section headings at 14px.
+ * Nothing led, because nothing was meaningfully larger than anything else, and a
+ * reader arriving at a screen had nowhere for the eye to land. Density is right
+ * for this product; flatness is not the same thing as density.
+ *
+ * Six steps, each with the line height and tracking that suit it. Optical
+ * tracking tightens as size grows, which is what keeps the larger steps from
+ * looking loose — the single biggest difference between type that was set and
+ * type that was merely sized.
+ */
+:root {
+  --text-display: 1.75rem;      /* 28px — the one hero figure on a screen */
+  --text-display-lh: 1.1;
+  --text-display-ls: 0;
+
+  --text-title: 1.1875rem;      /* 19px — the page heading */
+  --text-title-lh: 1.25;
+  --text-title-ls: 0;
+
+  --text-heading: 0.875rem;     /* 14px — panel headings */
+  --text-heading-lh: 1.35;
+  --text-heading-ls: 0;
+
+  --text-body: 0.78125rem;      /* 12.5px */
+  --text-body-lh: 1.55;
+
+  --text-small: 0.71875rem;     /* 11.5px */
+  --text-small-lh: 1.45;
+
+  --text-caption: 0.65625rem;   /* 10.5px — eyebrows and axis labels */
+  --text-caption-lh: 1.4;
+  --text-caption-ls: 0.02em;
+}
+
+.t-display {
+  font-size: var(--text-display);
+  line-height: var(--text-display-lh);
+  letter-spacing: var(--text-display-ls);
+  font-weight: 600;
+  /* Proportional figures: `tabular-nums` gives every digit the width of a zero,
+     which makes a display-size number look gappy. Tabular belongs in columns. */
+  font-variant-numeric: proportional-nums;
+}
+
+.t-title {
+  font-size: var(--text-title);
+  line-height: var(--text-title-lh);
+  letter-spacing: var(--text-title-ls);
+  font-weight: 600;
+}
+
+.t-heading {
+  font-size: var(--text-heading);
+  line-height: var(--text-heading-lh);
+  letter-spacing: var(--text-heading-ls);
+  font-weight: 600;
+}
+
+.t-body {
+  font-size: var(--text-body);
+  line-height: var(--text-body-lh);
+}
+
+.t-small {
+  font-size: var(--text-small);
+  line-height: var(--text-small-lh);
+}
+
+.t-caption {
+  font-size: var(--text-caption);
+  line-height: var(--text-caption-lh);
+  letter-spacing: var(--text-caption-ls);
+}
+
+/* An eyebrow: the small capitalised label above a group. */
+.t-eyebrow {
+  font-size: var(--text-caption);
+  line-height: var(--text-caption-lh);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+:root {
+  color-scheme: dark;
+
+  /* Surfaces and ink — dark is the default. */
+  --plane: #0d0d0d;
+  --surface: #1a1a19;
+  --surface-raised: #242724;
+  --surface-sunken: #131514;
+  --surface-glass: color-mix(in oklab, var(--surface) 86%, transparent);
+  --nav-active: color-mix(in oklab, var(--series-1) 12%, var(--surface-raised));
+  --ink: #ffffff;
+  --ink-secondary: #c3c2b7;
+  /*
+   * 4.6:1 against --surface-raised, which is the binding case here.
+   *
+   * The surface to check is whichever one sits closest in luminance to the
+   * text: on dark that is the *lightest* surface (raised, #232321), on light
+   * the *darkest* (sunken, #f0efec). Checking muted ink against the page
+   * background passes in both themes and misses both real failures.
+   */
+  --ink-muted: #8d8b84;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.18);
+
+  /*
+   * Elevation.
+   *
+   * On a dark surface a drop shadow is nearly invisible — there is no lighter
+   * ground for it to fall on — so depth here comes from the border and a faint
+   * inner highlight along the top edge, the way a raised panel catches light.
+   * The light theme overrides this with an actual shadow, which is what works
+   * there. Same token, different mechanism, because the physics differ.
+   */
+  --elevation-1: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --elevation-2: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 2px rgba(0, 0, 0, 0.4);
+  --hover-wash: rgba(255, 255, 255, 0.04);
+  --press-wash: rgba(255, 255, 255, 0.08);
+
+  /* Categorical, in fixed slot order. Never cycled. */
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #008300;
+  --series-7: #9085e9;
+  --series-8: #e66767;
+
+  /*
+   * Series hues as text. Slot 1 is stepped up because the plain value reads
+   * 4.33:1 on --surface-raised; 3 and 7 clear it there unchanged.
+   */
+  --series-1-text: #3b8ced;
+  --series-3-text: var(--series-3);
+  --series-7-text: var(--series-7);
+
+  /*
+   * The filled action button, one value for both themes.
+   *
+   * It has three contrast obligations at once and the series blue met none of
+   * them everywhere: its white label measured 4.42:1 on light and 3.64:1 on
+   * dark, so the most prominent control in the lab had an unreadable label in
+   * the default theme. This step carries a white label at 5.0:1 and the fill
+   * itself stands off both surfaces (3.5:1 dark, 4.9:1 light), which is what a
+   * button shape needs to be findable.
+   */
+  --action: #2f6fc4;
+
+  /* Sequential: one hue, light to dark, for magnitude. */
+  --seq-100: #cde2fb;
+  --seq-200: #9ec5f4;
+  --seq-300: #6da7ec;
+  --seq-400: #3987e5;
+  --seq-500: #256abf;
+  --seq-600: #184f95;
+  --seq-700: #0d366b;
+
+  /* Diverging: two poles and a neutral midpoint. Never a hue in the middle. */
+  --div-neg: #3987e5;
+  --div-mid: #383835;
+  --div-pos: #e66767;
+
+  /* Status. Reserved: never reused as a series colour. */
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-serious: #ec835a;
+  --status-critical: #d03b3b;
+
+  /*
+   * Result labels (§1.5).
+   *
+   * Observed and computed are deliberately quiet; predicted is the one that
+   * gets an accent, because §11.3 requires measured data to be neutral and
+   * predictions to carry a distinct treatment and an explicit badge.
+   */
+  --label-observed: #c3c2b7;
+  --label-computed: #9ec5f4;
+  --label-predicted: #c98500;
+  --label-interpreted: #9085e9;
+  --label-hypothesis: #d55181;
+  --label-validation: #199e70;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --plane: #f9f9f7;
+  --surface: #fcfcfb;
+  --surface-raised: #ffffff;
+  --surface-sunken: #f0efec;
+  --surface-glass: color-mix(in oklab, var(--surface) 90%, transparent);
+  --nav-active: color-mix(in oklab, var(--series-1) 10%, var(--surface-raised));
+  --ink: #0b0b0b;
+  --ink-secondary: #52514e;
+  /*
+   * 4.6:1 on this surface, not the 3.4:1 the flipped-from-dark value gave.
+   *
+   * Muted ink carries the workflow step numbers, the field hints, the
+   * provenance captions — small text, and most of the words on some screens.
+   * It was readable when checked against the dark surface and never checked
+   * against this one, which is the failure mode of a theme that is not the
+   * default: nothing renders it unless something opens it deliberately.
+   */
+  --ink-muted: #6d6b67;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --border: rgba(11, 11, 11, 0.1);
+  --border-strong: rgba(11, 11, 11, 0.2);
+
+  /* Here a shadow does the work; see the note in the dark block. */
+  --elevation-1: 0 1px 2px rgba(11, 11, 11, 0.04);
+  --elevation-2: 0 1px 3px rgba(11, 11, 11, 0.08), 0 4px 12px rgba(11, 11, 11, 0.04);
+  --hover-wash: rgba(11, 11, 11, 0.035);
+  --press-wash: rgba(11, 11, 11, 0.07);
+
+  /*
+   * Re-stepped for the light surface, not flipped from the dark set. Validated
+   * against #fcfcfb: lightness band, chroma floor, CVD separation and the
+   * normal-vision floor all pass.
+   *
+   * Three of them — 3, 4 and 5 — sit below 3:1 contrast against this surface.
+   * That is a WARN, not a failure, and the relief it obliges is already in
+   * place: every categorical mark in this lab carries a text label, in a legend
+   * or beside the mark. Removing those labels turns a passing palette into a
+   * failing one, so they are not decoration.
+   */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #008300;
+  --series-7: #4a3aa7;
+  --series-8: #e34948;
+
+  --div-neg: #2a78d6;
+  --div-mid: #f0efec;
+  --div-pos: #e34948;
+
+  --label-observed: #52514e;
+  --label-computed: #256abf;
+  --label-predicted: #8a5c00;
+  --label-interpreted: #4a3aa7;
+  --label-hypothesis: #b23a68;
+  --label-validation: #006b46;
+
+  /*
+   * Status, re-stepped for this surface.
+   *
+   * These had no light override at all: the dark-surface values were reused
+   * unchanged, and amber on near-white measured 1.7:1 — the word "Partial" in
+   * the implementation register was very nearly invisible. Each step below is
+   * scaled in linear light, which holds the hue and saturation exactly and
+   * moves only the luminance, to at least 4.5:1 on both --plane and --surface.
+   *
+   * They stay legal as marks too: a mark needs 3:1 and darkening only helps.
+   * Status is still never colour alone — every use pairs a mark with its word.
+   */
+  --status-good: #077d07;
+  --status-warning: #8f6409;
+  --status-serious: #a1583a;
+  --status-critical: #c23636;
+
+  /*
+   * Series hues as *text*.
+   *
+   * A series colour is a mark colour and clears the 3:1 a mark needs. Used for
+   * a word it has to clear 4.5:1, and slots 1 and 3 did not — the registry
+   * painted its parameter kinds with them and "Biological" measured 2.5:1.
+   * These are the same hues stepped down for text, so a label and its mark
+   * still read as the same colour.
+   *
+   * In dark mode the series values already clear 4.5:1 on the sunken surface
+   * and the text tokens are aliases, which is why they are defined there too:
+   * a component should not have to know which theme it is in.
+   */
+  --series-1-text: #256cc1;
+  --series-3-text: #107b54;
+  --series-7-text: #4a3aa7;
+}
+
+html,
+body {
+  min-height: 100%;
+  background: var(--plane);
+  color: var(--ink);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Tabular figures only where columns must align — never for prose. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * The texture channel.
+ *
+ * §11.3 asks for uncertainty to be carried by something other than colour, and
+ * the accessibility channel for a categorical fill is a directional hatch. Used
+ * at 45° and its 135° mirror only, tone on tone.
+ */
+.hatch-45 {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent 0 3px,
+    color-mix(in oklab, currentColor 35%, transparent) 3px 4px
+  );
+}
+
+.hatch-135 {
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent 0 3px,
+    color-mix(in oklab, currentColor 35%, transparent) 3px 4px
+  );
+}
+
+/*
+ * Form controls.
+ *
+ * Native selects, radios and checkboxes paint themselves with the operating
+ * system's accent colour and its own idea of a border, so on a dark theme they
+ * arrived as light-grey OS widgets sitting in a dark panel — and the blue was
+ * the platform's blue, not this lab's. The mode chooser on the project screen
+ * is the clearest case: three radios that decide which controls and exports a
+ * learner gets, rendered as the smallest, least considered thing on the page.
+ *
+ * `accent-color` handles the radio and checkbox marks without replacing the
+ * control, so they keep their native semantics and keyboard behaviour. The
+ * select gets its own chevron because the platform one cannot be recoloured.
+ *
+ * One trap worth stating, because it cost a round here: a component that sets
+ * the `background` *shorthand* inline — even just to name a colour — resets
+ * `background-image` to none, and inline wins. With `appearance: none` already
+ * applied that left selects with no arrow at all, which is worse than the
+ * platform's. Every select in this app therefore sets `backgroundColor`.
+ */
+select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--ink-muted) 50%),
+    linear-gradient(135deg, var(--ink-muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 15px) calc(50% + 1px),
+    calc(100% - 10px) calc(50% + 1px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  /* Room for the chevron, so a long option name is ellipsised rather than
+     running underneath it. */
+  padding-right: 2rem;
+}
+
+select:disabled {
+  opacity: 0.55;
+}
+
+/*
+ * Text fields.
+ *
+ * They were 1.5-unit-tall rectangles with a hairline border, which on a dark
+ * panel is close to invisible: the field and the surface it sits on were within
+ * a few percent of each other, so a form read as a list of labels with gaps
+ * rather than as something to fill in. Giving the control a sunken ground and a
+ * little more height makes the affordance legible before anyone clicks, and the
+ * focus ring then has something to sit against.
+ *
+ * `field-sizing` is progressive: where it is supported a textarea grows with
+ * its content instead of scrolling inside four fixed lines.
+ */
+input[type='text'],
+input[type='search'],
+input[type='number'],
+input[type='email'],
+textarea,
+select {
+  background-color: var(--surface-sunken);
+  border-color: var(--border-strong);
+  transition: border-color 0.12s ease, background-color 0.12s ease;
+}
+
+input[type='text']:hover,
+input[type='search']:hover,
+input[type='number']:hover,
+textarea:hover,
+select:hover {
+  border-color: var(--axis);
+}
+
+input[type='text']:focus,
+input[type='search']:focus,
+input[type='number']:focus,
+textarea:focus,
+select:focus {
+  background-color: var(--surface-raised);
+}
+
+textarea {
+  field-sizing: content;
+  min-block-size: 4.5rem;
+}
+
+input[type='radio'],
+input[type='checkbox'] {
+  accent-color: var(--action);
+  /* The default 13px box is small for a control that decides a lab mode. */
+  inline-size: 0.95rem;
+  block-size: 0.95rem;
+}
+
+/* Native placeholders inherit the input's colour at full strength in some
+   engines, which reads as a filled field. */
+::placeholder {
+  color: var(--ink-muted);
+  opacity: 1;
+}
+
+/*
+ * Interaction states.
+ *
+ * Buttons had a `transition-colors` class and no `:hover` or `:active` rule to
+ * transition *to*, so every control in the lab was visually inert: nothing
+ * acknowledged the pointer, and nothing moved on press. That absence is most of
+ * the difference between an interface that feels built and one that feels like
+ * a wireframe, and it costs four rules.
+ *
+ * The wash is a translucent overlay rather than a second colour per variant, so
+ * it composites correctly over whatever the variant's background happens to be
+ * — including the primary blue and the transparent quiet button.
+ */
+.btn {
+  position: relative;
+  transition:
+    background-color 0.12s ease,
+    border-color 0.12s ease,
+    color 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: transparent;
+  transition: background-color 0.12s ease;
+  pointer-events: none;
+}
+
+.btn:not(:disabled):hover::after {
+  background: var(--hover-wash);
+}
+
+.btn:not(:disabled):active::after {
+  background: var(--press-wash);
+}
+
+.btn-primary:not(:disabled):hover {
+  box-shadow: var(--elevation-2);
+}
+
+/*
+ * A row or card that can be chosen. Same wash, so a clickable list item and a
+ * button acknowledge the pointer in the same language.
+ */
+.interactive {
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+.interactive:hover {
+  background-color: var(--hover-wash);
+}
+
+/*
+ * The skeleton shimmer.
+ *
+ * A slow, low-contrast sweep rather than a pulse: a placeholder that flashes
+ * competes with the content arriving next to it, and at this density several
+ * of them blinking together is worse than a static block. Held to one second
+ * and a few percent of luminance, and stopped entirely under
+ * `prefers-reduced-motion` further down, where it becomes a plain block.
+ */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface-sunken) 0%,
+    color-mix(in oklab, var(--surface-sunken) 60%, var(--ink-muted) 12%) 50%,
+    var(--surface-sunken) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-sweep 1.15s ease-in-out infinite;
+}
+
+@keyframes skeleton-sweep {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* Focus that is visible on every surface, including inside the canvas. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--series-1);
+  outline-offset: 2px;
+  border-radius: 3px;
+  /*
+   * The ring appears at once, and in the right colour.
+   *
+   * `transition-colors` is on most controls here and its property list includes
+   * `outline-color`, so the ring faded in over 150ms *from the element's text
+   * colour*. Measured on a nav button it went #c3c2b7 → #84a7cc → #3987e5: for
+   * the first frames of every Tab press the ring was grey, which for anyone
+   * moving quickly through a twelve-item sidebar is the whole of the time they
+   * spend on each item.
+   */
+  transition: none;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--axis);
+  border-radius: 5px;
+  border: 2px solid var(--plane);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  /*
+   * Killing the duration alone would freeze the sweep wherever it happened to
+   * stop, leaving a lopsided gradient rather than a placeholder. The skeleton
+   * needs to become a plain block, not a stopped animation.
+   */
+  .skeleton {
+    background: var(--surface-sunken);
+    animation: none !important;
+  }
+}
+
+/*
+ * Forced colours: the palette is gone, so identity has to come from the
+ * texture channel and from labels. Nothing in this app depends on colour alone,
+ * which is what makes that survivable.
+ */
+@media (forced-colors: active) {
+  .hatch-45,
+  .hatch-135 {
+    forced-color-adjust: none;
+  }
+}
+
+
+/* -------------------------------------------------------------------------
+ * Application polish layer
+ * ---------------------------------------------------------------------- */
+.app-shell {
+  position: relative;
+  isolation: isolate;
+  background: var(--plane);
+}
+
+.institution-masthead {
+  background: #00558f;
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 52, 96, 0.18);
+}
+
+.institution-ribbon {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.45rem clamp(1rem, 3vw, 2rem);
+  background: #003f6b;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption-lh);
+}
+
+.institution-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  min-height: 5.4rem;
+  padding: 1rem clamp(1rem, 3vw, 2rem);
+}
+
+.institution-links {
+  display: flex;
+  align-items: stretch;
+  gap: 0.25rem;
+  align-self: stretch;
+}
+
+.institution-links button,
+.masthead-menu {
+  display: inline-flex;
+  align-items: center;
+  border: 0;
+  border-left: 1px solid rgba(255, 255, 255, 0.18);
+  background: transparent;
+  color: #fff;
+  padding: 0 0.95rem;
+  font-size: var(--text-body);
+  line-height: var(--text-body-lh);
+  font-weight: 550;
+  cursor: pointer;
+}
+
+.institution-links button:hover,
+.masthead-menu:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.masthead-menu {
+  min-height: 2.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 0.25rem;
+}
+
+.workflow-sidebar {
+  background: var(--surface-raised);
+  box-shadow: 1px 0 0 var(--border), 8px 0 24px rgba(0, 63, 107, 0.08);
+}
+
+.brand-mark {
+  border-radius: 0.18rem;
+  background: #ffd200;
+  color: #003f6b;
+  box-shadow: 0 8px 18px rgba(0, 63, 107, 0.18);
+}
+
+.nav-item {
+  min-height: 2.32rem;
+  border: 1px solid transparent;
+  border-radius: 0.25rem !important;
+}
+
+.nav-item[aria-current='page'] {
+  border-color: color-mix(in oklab, var(--series-1) 30%, var(--border));
+  background: #e8f4fb !important;
+}
+
+.mobile-topbar {
+  background: color-mix(in oklab, var(--surface) 94%, transparent);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--elevation-1);
+}
+
+.workspace-page {
+  width: min(100%, 1440px);
+}
+
+.page-hero {
+  position: relative;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background:
+    linear-gradient(90deg, rgba(0, 85, 143, 0.95), rgba(0, 118, 168, 0.86)),
+    radial-gradient(circle at 82% 12%, rgba(255, 210, 0, 0.34), transparent 18rem),
+    var(--series-1);
+  box-shadow: none;
+  color: #fff;
+}
+
+.page-hero::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 5px;
+  background: #ffd200;
+  opacity: 1;
+}
+
+.page-hero .brand-mark {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+}
+
+.section-card {
+  border-radius: 0.25rem;
+  background: var(--surface-raised);
+  box-shadow: var(--elevation-2);
+}
+
+.stat-tile {
+  position: relative;
+  overflow: hidden;
+  min-height: 7.5rem;
+  background: var(--surface-raised);
+  box-shadow: var(--elevation-1);
+}
+
+.stat-tile::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: #ffd200;
+  opacity: 1;
+}
+
+.btn {
+  min-height: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.btn-primary {
+  box-shadow: 0 8px 18px color-mix(in oklab, var(--action) 22%, transparent);
+}
+
+input[type='text'],
+input[type='search'],
+input[type='number'],
+input[type='email'],
+input[type='file'],
+textarea,
+select {
+  min-height: 2.25rem;
+  border-radius: 0.5rem;
+}
+
+input[type='file'] {
+  background-color: var(--surface-sunken);
+  border: 1px solid var(--border-strong);
+  color: var(--ink-secondary);
+}
+
+input[type='file']::file-selector-button {
+  min-height: 2rem;
+  margin: -0.35rem 0.65rem -0.35rem -0.5rem;
+  border: 0;
+  border-right: 1px solid var(--border);
+  background: var(--surface-raised);
+  color: var(--ink);
+  padding: 0 0.75rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.table-shell {
+  border: 1px solid var(--border);
+  border-radius: 0.25rem;
+  background: var(--surface-raised);
+}
+
+@media (max-width: 767px) {
+  :root {
+    --text-display: 1.35rem;
+    --text-title: 1.05rem;
+  }
+
+  .workspace-page {
+    padding-inline: 0.875rem !important;
+    padding-block: 1rem !important;
+  }
+
+  .page-hero {
+    border-radius: 0.75rem;
+  }
+
+  .section-card > header,
+  .section-card > div {
+    padding-inline: 1rem !important;
+  }
+
+  .stat-tile {
+    min-height: auto;
+  }
+}
+
+
+.method-card {
+  background: var(--surface-raised);
+  box-shadow: var(--elevation-1);
+}
+
+.method-card[open] {
+  border-color: color-mix(in oklab, var(--series-1) 30%, var(--border));
+}
+
+.method-card summary {
+  list-style: none;
+}
+
+.method-card summary::-webkit-details-marker {
+  display: none;
+}
+
+.method-card summary::after {
+  content: 'Open';
+  float: right;
+  margin-left: 1rem;
+  color: var(--ink-muted);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption-lh);
+}
+
+.method-card[open] summary::after {
+  content: 'Close';
+  color: var(--series-1-text);
+}
+
+.code-panel {
+  border: 1px solid var(--border);
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--surface-sunken) 75%, black 6%), var(--surface-sunken));
+}
+
+
+@media (max-width: 1023px) {
+  .institution-main {
+    min-height: 4.6rem;
+  }
+
+  .institution-links {
+    display: none;
+  }
+
+  .workflow-sidebar {
+    top: 0;
+    bottom: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .institution-ribbon {
+    display: none;
+  }
+
+  .institution-main {
+    padding-block: 0.8rem;
+  }
+}

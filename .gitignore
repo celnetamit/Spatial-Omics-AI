@@ -1,0 +1,21 @@
+/node_modules/
+/dist/
+/engine/dist/
+
+# Runtime state: projects, runs and uploads. Mounted as a volume in a
+# deployment; never committed, because it holds user data.
+/data/
+
+*.log
+.DS_Store
+.env
+.env.*
+!.env.example
+coverage/
+.vscode/
+.idea/
+
+# Per-job training artefacts. `SPATIAL_JOB=combine` reads these to assemble the
+# pack; only the assembled pack is shipped. Keeping them locally makes a
+# re-combine cheap, which is why they are ignored rather than deleted.
+content/packs/propagation-model/.parts/

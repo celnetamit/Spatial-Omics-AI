@@ -1,0 +1,321 @@
+{
+  "modelId": "spatial-propagation-gnn",
+  "version": "1.0.0",
+  "createdAt": "2026-09-28T11:00:30.649Z",
+  "architecture": {
+    "kind": "edge-type-aware message passing, applied as a one-step operator and rolled out",
+    "inputDim": 205,
+    "hiddenDim": 48,
+    "layers": 3,
+    "outputDim": 66,
+    "edgeTypes": [
+      "physical",
+      "biological"
+    ],
+    "parameters": 34002,
+    "ensembleMembers": 3
+  },
+  "trainingData": {
+    "source": "Simulated sections from the spatial-omics-engine tissue model, perturbed and solved by the mechanistic reaction-diffusion solver.",
+    "sections": 14,
+    "cellsPerSection": 500,
+    "perturbations": 20,
+    "stages": 5,
+    "examples": 280,
+    "seed": 4242,
+    "split": {
+      "policy": "section-level, never cell-level (§14.4)",
+      "trainSections": [
+        "SIM-SEC-002",
+        "SIM-SEC-005",
+        "SIM-SEC-008",
+        "SIM-SEC-009",
+        "SIM-SEC-011",
+        "SIM-SEC-012",
+        "SIM-SEC-013",
+        "SIM-SEC-014"
+      ],
+      "validationSections": [
+        "SIM-SEC-001",
+        "SIM-SEC-003",
+        "SIM-SEC-010"
+      ],
+      "testSections": [
+        "SIM-SEC-004",
+        "SIM-SEC-006",
+        "SIM-SEC-007"
+      ]
+    },
+    "graph": {
+      "method": "knn",
+      "k": 6,
+      "biologicalEdgesPerNode": 4
+    }
+  },
+  "whatTheMetricsMean": "Every figure below is measured against the mechanistic simulator that generated the data. They say how well this network reproduces that mechanism on sections it was not fitted to. They are NOT evidence about human tissue, about any real perturbation, or about any drug. §18.1 lists a real spatial perturbation corpus as a freeze item for a research-grade release; this pack does not discharge it.",
+  "metrics": {
+    "gnn": {
+      "variant": "gnn",
+      "stepMse": 0.00004078192664665154,
+      "stepMae": 0.000593446114181081,
+      "stepPearson": 0.7965018617776171,
+      "stepSpearman": 0.102827382308433,
+      "rolloutRmse": 0.021922081851482,
+      "rolloutPearson": 0.6295203514100856,
+      "rolloutCosine": 0.6292346442517285,
+      "rolloutR2": 0.39584569548748283,
+      "bystanderRmse": 0.02331342737795058,
+      "bystanderPearson": 0.27956738927017655,
+      "firstNeighbourRmse": 0.014029117460330684,
+      "firstNeighbourPearson": 0.3248494461902643,
+      "firstNeighbourR2": 0.10549960963783778,
+      "perStageRmse": [
+        0.013245940287849908,
+        0.02130519801462824,
+        0.02183975228257079,
+        0.021907808423060428,
+        0.021922081851482745
+      ],
+      "examples": 60,
+      "cells": 31640
+    },
+    "gnn-no-biological": {
+      "variant": "gnn-no-biological",
+      "stepMse": 0.0000633879519868131,
+      "stepMae": 0.0021806063059194047,
+      "stepPearson": 0.6634766549361457,
+      "stepSpearman": 0.0017745113361580529,
+      "rolloutRmse": 0.025702631294151252,
+      "rolloutPearson": 0.4974943524648679,
+      "rolloutCosine": 0.49457960416002716,
+      "rolloutR2": 0.16950034424047222,
+      "bystanderRmse": 0.026745345274961762,
+      "bystanderPearson": 0.10359135255198924,
+      "firstNeighbourRmse": 0.01454670404633744,
+      "firstNeighbourPearson": 0.20292091661810333,
+      "firstNeighbourR2": 0.03827913594927457,
+      "perStageRmse": [
+        0.014060063897973846,
+        0.022113446919345147,
+        0.023074331660318283,
+        0.024051731171815117,
+        0.025702631294152276
+      ],
+      "examples": 60,
+      "cells": 31640
+    },
+    "gnn-no-spatial": {
+      "variant": "gnn-no-spatial",
+      "stepMse": 0.00009170065600816213,
+      "stepMae": 0.0023126098995083287,
+      "stepPearson": 0.4694517354954178,
+      "stepSpearman": 0.31372840916675854,
+      "rolloutRmse": 0.026823352643467115,
+      "rolloutPearson": 0.49947332545926915,
+      "rolloutCosine": 0.4850708876195233,
+      "rolloutR2": 0.09549618552789696,
+      "bystanderRmse": 0.02752716343489144,
+      "bystanderPearson": 0.18990736048497914,
+      "firstNeighbourRmse": 0.014344593520360455,
+      "firstNeighbourPearson": 0.2654054762495292,
+      "firstNeighbourR2": 0.06481760167058914,
+      "perStageRmse": [
+        0.013860588206674948,
+        0.02197405334774181,
+        0.023529592033468244,
+        0.024900848170507178,
+        0.026823352643468735
+      ],
+      "examples": 60,
+      "cells": 31640
+    },
+    "gnn-shuffled": {
+      "variant": "gnn-shuffled",
+      "stepMse": 0.00009505049209618054,
+      "stepMae": 0.0011265179273753042,
+      "stepPearson": 0.5962851381196173,
+      "stepSpearman": 0.11438391305928157,
+      "rolloutRmse": 0.022049389125528996,
+      "rolloutPearson": 0.6240686841864888,
+      "rolloutCosine": 0.6237210503999456,
+      "rolloutR2": 0.3888083560781247,
+      "bystanderRmse": 0.023356885618270398,
+      "bystanderPearson": 0.2736273404659089,
+      "firstNeighbourRmse": 0.01412936880101866,
+      "firstNeighbourPearson": 0.30609607498035074,
+      "firstNeighbourR2": 0.09266982621355946,
+      "perStageRmse": [
+        0.013445167627704101,
+        0.021421890942757923,
+        0.021961735720707077,
+        0.02203155771117659,
+        0.022049389125529336
+      ],
+      "examples": 60,
+      "cells": 31640
+    },
+    "mlp": {
+      "variant": "mlp",
+      "stepMse": 0.00007203571898794101,
+      "stepMae": 0.0008294209247129468,
+      "stepPearson": 0.5946998253087059,
+      "stepSpearman": 0.13944366729038443,
+      "rolloutRmse": 0.022384389168357593,
+      "rolloutPearson": 0.6084019581205793,
+      "rolloutCosine": 0.6084621652594504,
+      "rolloutR2": 0.3700954003335991,
+      "bystanderRmse": 0.023815231735893536,
+      "bystanderPearson": 0.19221925852637153,
+      "firstNeighbourRmse": 0.014588957576649594,
+      "firstNeighbourPearson": 0.18094261164704098,
+      "firstNeighbourR2": 0.03268403770554118,
+      "perStageRmse": [
+        0.013753878107669001,
+        0.021761320238257796,
+        0.022297836108488227,
+        0.022368721835451355,
+        0.022384389168359508
+      ],
+      "examples": 60,
+      "cells": 31640
+    },
+    "linear": {
+      "variant": "linear",
+      "stepMse": 0.00008569820902870025,
+      "stepMae": 0.0012477164900421994,
+      "stepPearson": 0.4805902160119491,
+      "stepSpearman": 0.2830031276932947,
+      "rolloutRmse": 0.022492592953845023,
+      "rolloutPearson": 0.6040281532667687,
+      "rolloutCosine": 0.6040950374889491,
+      "rolloutR2": 0.36399089633111315,
+      "bystanderRmse": 0.02384521820671509,
+      "bystanderPearson": 0.18734458710389684,
+      "firstNeighbourRmse": 0.01478127876368313,
+      "firstNeighbourPearson": 0.09330240843155768,
+      "firstNeighbourR2": 0.007012351018030771,
+      "perStageRmse": [
+        0.014600325405900564,
+        0.022001858553805927,
+        0.022416319310066966,
+        0.02246119250689355,
+        0.022492592953844523
+      ],
+      "examples": 60,
+      "cells": 31640
+    },
+    "zero": {
+      "variant": "zero",
+      "stepMse": 0.00011145665053114875,
+      "stepMae": 0.0006487542293570313,
+      "stepPearson": null,
+      "stepSpearman": null,
+      "rolloutRmse": 0.02589023980858169,
+      "rolloutPearson": 0.39751441436880597,
+      "rolloutCosine": 0.39682358189609956,
+      "rolloutR2": 0.15733213902573584,
+      "bystanderRmse": 0.02433203056702344,
+      "bystanderPearson": null,
+      "firstNeighbourRmse": 0.014835521748655692,
+      "firstNeighbourPearson": null,
+      "firstNeighbourR2": -0.0002889718285250531,
+      "perStageRmse": [
+        0.018470978267831544,
+        0.025325583901947103,
+        0.02581376218128252,
+        0.025876781951338385,
+        0.02589023980859445
+      ],
+      "examples": 60,
+      "cells": 31640
+    }
+  },
+  "baselineNotes": {
+    "gnn": "The spatial model: message passing over physical and biological edges.",
+    "gnn-no-biological": "Ablation: physical proximity edges only.",
+    "gnn-no-spatial": "Ablation: biological interaction edges only.",
+    "gnn-shuffled": "Control: the same degree sequence with permuted neighbours. Any skill here is not spatial.",
+    "mlp": "Baseline: the same architecture with every edge removed. Sees the cell, not its neighbourhood.",
+    "linear": "Baseline: ridge regression on the same node features.",
+    "zero": "Baseline: direct effect only, no propagation. The floor any spatial model has to clear."
+  },
+  "uncertainty": {
+    "method": "deep ensemble of independently initialised members",
+    "calibration": {
+      "nominal": 0.9,
+      "empirical": 0.8351293072569669,
+      "scaleFactor": 1.422108300136511,
+      "sampleCount": 2791800,
+      "note": "83.5% of held-out errors fell inside the nominal 90% interval. Multiplying the ensemble spread by 1.42 would reach nominal coverage. That factor is reported, not applied — an interval widened to hit a target is calibrated by construction and says nothing."
+    },
+    "dispersionThreshold": 0.0007973279732788853,
+    "domain": {
+      "featureNames": [
+        "observations",
+        "median nearest-neighbour distance",
+        "mean physical degree",
+        "tumour fraction",
+        "immune fraction",
+        "stromal fraction",
+        "mean baseline activity",
+        "baseline activity spread",
+        "perturbed fraction"
+      ],
+      "means": [
+        503.125,
+        32.64401695187768,
+        6.812941378346302,
+        0.2219498642657669,
+        0.3104949484232762,
+        0.3584543064972932,
+        0.11940342751064989,
+        0.10098036975391314,
+        0.11988980937256899
+      ],
+      "standardDeviations": [
+        107.54953517204652,
+        3.866519048865188,
+        0.02161304201117097,
+        0.03063690473386493,
+        0.04663278852845795,
+        0.02159866120970826,
+        0.002517653078804433,
+        0.004575989642521477,
+        0.12729784053995138
+      ],
+      "excludedFeatures": [],
+      "distanceP95": 3.9429823673253916,
+      "distanceP99": 4.145085585022685,
+      "sampleCount": 160
+    }
+  },
+  "trainingHistory": [
+    {
+      "member": 0,
+      "bestEpoch": 49,
+      "bestValidationLoss": 0.20976433602464536,
+      "epochs": 50
+    },
+    {
+      "member": 1,
+      "bestEpoch": 50,
+      "bestValidationLoss": 0.22198445319865623,
+      "epochs": 50
+    },
+    {
+      "member": 2,
+      "bestEpoch": 50,
+      "bestValidationLoss": 0.2164186447543984,
+      "epochs": 50
+    }
+  ],
+  "limitations": [
+    "Trained on simulated tissue only. No wet-lab perturbation data was used at any point.",
+    "The cell-class vocabulary is fixed to the five types the generator produces. A dataset with other cell types maps them to the unknown-class slot.",
+    "The feature space is the 66-node curated network. A dataset measuring other genes cannot be predicted on without a new pack.",
+    "Stage indices count rounds of intercellular signalling in the model and are not calibrated to biological time (§7.8).",
+    "On the cells one hop from a perturbed cell — where a spatial model has to earn its keep — this pack explains 10.5% of the variance (first-neighbour R² 0.105, Pearson 0.325). It is directional evidence about where a perturbation travels, not a quantitative prediction of how much any individual cell changes.",
+    "Permuting the graph while keeping every cell's degree (the gnn-shuffled control) retains 88% of the first-neighbour R² (0.093 against 0.105). Most of what this model does is aggregate over *a* neighbourhood; the specific edges account for the remaining 12%. Read a propagation map as neighbourhood context first and edge-specific routing second.",
+    "The ensemble interval is too narrow: 83.5% of held-out errors fell inside the nominal 90% interval. Treat the spread as a ranking of which predictions are less certain, not as a 90% interval. The correction factor is reported above and deliberately not applied."
+  ]
+}

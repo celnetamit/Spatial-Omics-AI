@@ -1,0 +1,51 @@
+{
+  "name": "spatial-omics-ai-livelab",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Spatial Omics AI Virtual LiveLab — spatial perturbation propagation and AI-guided therapeutic rescue, built on a deterministic scientific engine.",
+  "scripts": {
+    "dev": "vite",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "engine:build": "tsc -p engine/tsconfig.build.json && node -e \"require('fs').writeFileSync('engine/dist/package.json', JSON.stringify({type:'commonjs'})+'\\n')\"",
+    "server:build": "tsc -p server/tsconfig.build.json && node server/tools/fix-aliases.mjs dist/server && node -e \"require('fs').writeFileSync('dist/server/package.json', JSON.stringify({type:'commonjs'})+'\\n')\"",
+    "build": "npm run typecheck && npm run server:build && vite build",
+    "build:only": "npm run server:build && vite build",
+    "verify": "npm run typecheck && npm run test && npm run build:only",
+    "start": "node dist/server/server/src/index.js",
+    "dev:server": "npm run server:build && node dist/server/server/src/index.js",
+    "case:generate": "npm run engine:build && node engine/tools/generate-case.mjs",
+    "model:train": "npm run engine:build && node engine/tools/train-propagation.mjs",
+    "evidence:fetch": "node engine/tools/fetch-evidence.mjs",
+    "docker:build": "docker build --build-arg SOURCE_COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo unknown) -t spatial-ai .",
+    "docker:run": "docker run --rm -p 3000:3000 -v spatial-ai-data:/app/data spatial-ai",
+    "content:validate": "npm run server:build && node engine/tools/validate-content.mjs"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^11.1.2",
+    "@fastify/multipart": "^9.3.1",
+    "@fastify/static": "^10.1.3",
+    "@fontsource-variable/inter": "^5.3.0",
+    "fastify": "^5.12.5",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^22.14.0",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.0.0",
+    "jsdom": "^25.0.1",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0",
+    "vitest": "^3.2.7"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

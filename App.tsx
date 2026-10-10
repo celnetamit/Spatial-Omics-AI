@@ -105,6 +105,14 @@ export default function App(): React.ReactElement {
     selectProject(next?.projectId ?? null);
   }, [selectProject]);
 
+  const goHome = useCallback((target?: string) => {
+    navigate('project');
+    if (!target) return;
+    window.setTimeout(() => {
+      document.getElementById(target)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+  }, [navigate]);
+
   useEffect(() => {
     setNavOpen(false);
   }, [page]);
@@ -283,49 +291,49 @@ export default function App(): React.ReactElement {
           />
         ) : null}
 
-        <header className="institution-masthead shrink-0">
-          <div className="institution-ribbon">
-            <span>Research-use spatial omics platform</span>
-            <span>Virtual LiveLab v{meta?.version ?? appConfig.version}</span>
+        <header className="research-masthead shrink-0">
+          <div className="research-ribbon">
+            <span>Spatial biology intelligence platform</span>
+            <span>Research and education use · v{meta?.version ?? appConfig.version}</span>
           </div>
-          <div className="institution-main">
+          <div className="research-main">
             <div className="flex min-w-0 items-center gap-3">
               <span className="brand-mark flex h-11 w-11 shrink-0 items-center justify-center">
                 <Icon name="propagation" size={22} />
               </span>
               <div className="min-w-0">
-                <p className="t-caption font-semibold uppercase" style={{ color: 'rgba(255,255,255,0.78)' }}>
+                <p className="t-caption font-semibold uppercase" style={{ color: 'var(--ink-muted)' }}>
                   Spatial Omics AI
                 </p>
-                <h1 className="truncate text-[1.28rem] font-semibold leading-tight text-white sm:text-[1.55rem]">
-                  Virtual LiveLab Research
+                <h1 className="truncate text-[1.18rem] font-semibold leading-tight sm:text-[1.42rem]" style={{ color: 'var(--ink)' }}>
+                  Spatial Intelligence Workbench
                 </h1>
               </div>
             </div>
-            <nav className="institution-links" aria-label="Primary">
-              <button type="button" onClick={() => navigate('project')}>Discover research</button>
-              <button type="button" onClick={() => navigate('methods')}>Methods</button>
-              <button type="button" onClick={() => navigate('register')}>Resources</button>
-              <button type="button" onClick={() => navigate('about')}>Integrity</button>
+            <nav className="research-links" aria-label="Primary">
+              <button type="button" onClick={() => goHome('overview')}>Overview</button>
+              <button type="button" onClick={() => goHome('methods-overview')}>Methods</button>
+              <button type="button" onClick={() => goHome('repurposing-overview')}>Repurposing</button>
+              <button type="button" onClick={() => goHome('project-form')}>Start project</button>
             </nav>
             <button
               type="button"
               onClick={() => setNavOpen(true)}
               aria-expanded={navOpen}
               aria-controls="workflow-nav"
-              className="masthead-menu lg:hidden"
+              className="masthead-menu"
             >
-              Workflow
+              Contents
             </button>
           </div>
         </header>
 
-        <div className="min-h-0 flex flex-1">
+        <div className="article-shell min-h-0 flex flex-1">
           <nav
             id="workflow-nav"
-            className={`${navOpen ? 'flex' : 'hidden'} workflow-sidebar fixed inset-y-0 left-0 z-40 w-72 shrink-0 flex-col overflow-y-auto border-r lg:static lg:z-auto lg:flex lg:w-72`}
+            className={`${navOpen ? 'flex' : 'hidden'} workflow-sidebar fixed inset-y-0 left-0 z-40 w-72 shrink-0 flex-col overflow-y-auto border-r`}
             style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}
-            aria-label="Workflow"
+            aria-label="Contents"
           >
           <div className="border-b px-4 py-4" style={{ borderColor: 'var(--border)' }}>
             <div className="flex items-center gap-3">
@@ -334,10 +342,10 @@ export default function App(): React.ReactElement {
               </span>
               <div className="min-w-0">
                 <p className="text-[13px] font-semibold leading-tight" style={{ color: 'var(--ink)' }}>
-                  Spatial Omics AI
+                  Page contents
                 </p>
                 <p className="t-caption mt-0.5" style={{ color: 'var(--ink-muted)' }}>
-                  Virtual LiveLab · v{meta?.version ?? appConfig.version}
+                  Workflow, methods and governance
                 </p>
               </div>
             </div>
@@ -352,15 +360,15 @@ export default function App(): React.ReactElement {
             * who read documentation. The button states its own shortcut, which
             * is how the shortcut gets learned.
             */}
-          <div className="px-2 pt-2">
+          <div className="px-4 pt-4">
             <button
               type="button"
               onClick={() => setPaletteOpen(true)}
-              className="interactive t-body flex w-full items-center gap-2 rounded-md border px-2 py-1.5"
+              className="interactive t-body flex w-full items-center gap-2 rounded-md border px-3 py-2"
               style={{ borderColor: 'var(--border)', color: 'var(--ink-muted)', background: 'var(--surface-sunken)' }}
             >
               <Icon name="arrow-right" size={14} className="shrink-0" />
-              <span className="flex-1 text-left">Jump to…</span>
+              <span className="flex-1 text-left">Search the workbench</span>
               <kbd
                 className="t-caption rounded border px-1 py-px"
                 style={{ borderColor: 'var(--border)', color: 'var(--ink-muted)' }}
@@ -399,7 +407,7 @@ export default function App(): React.ReactElement {
 
           <div className="mt-auto border-t px-4 py-3.5" style={{ borderColor: 'var(--border)', color: 'var(--ink-muted)' }}>
             <p className="t-caption leading-relaxed">
-              Research and education use. Not a clinical treatment recommendation system.
+              Evidence-generating software. Not a clinical treatment recommendation system.
             </p>
             <button
               type="button"
@@ -436,7 +444,7 @@ export default function App(): React.ReactElement {
               className="-ml-1 rounded p-1.5"
               style={{ color: 'var(--ink)' }}
             >
-              <span className="sr-only">Open the workflow menu</span>
+              <span className="sr-only">Open the contents menu</span>
               <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
                 <path d="M2 4.5h14M2 9h14M2 13.5h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
@@ -448,7 +456,7 @@ export default function App(): React.ReactElement {
               * leaving the product unidentified outside the closed drawer.
               */}
             <p className="min-w-0 truncate text-[12.5px] font-semibold" style={{ color: 'var(--ink)' }}>
-              Spatial Omics AI
+              Spatial Omics AI contents
             </p>
           </div>
           <Suspense fallback={<CentredNote text="Loading…" />}>

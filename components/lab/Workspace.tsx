@@ -247,7 +247,7 @@ export default function Workspace({
   const rescue = useRunResults(rescueRunId);
 
   return (
-    <div className="workspace-page mx-auto px-5 py-6 sm:px-6 lg:px-8">
+    <div className={`workspace-page workspace-page-${page} mx-auto px-5 py-6 sm:px-6 lg:px-8`}>
       {/*
         * The page header.
         *
@@ -259,36 +259,38 @@ export default function Workspace({
         * offers. Chips separate them, and a rule under the header gives the
         * content below an edge to start from instead of floating.
         */}
-      <header
-        className="page-hero mb-6 flex flex-wrap items-start justify-between gap-4 px-4 py-4 sm:px-5"
-        style={{ borderColor: 'var(--border)' }}
-      >
-        <div className="min-w-0">
-          <div className="flex items-center gap-2.5">
-            {PAGE_ICON[page] ? (
-              <span
-                className="brand-mark flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
-                style={{ borderColor: 'var(--border)' }}
-              >
-                <Icon name={PAGE_ICON[page] as IconName} size={18} />
-              </span>
-            ) : null}
-            <h1 className="t-title truncate" style={{ color: '#fff' }}>
-              {PAGE_TITLES[page]}
-            </h1>
-          </div>
-          {project ? (
-            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-              <Chip tone="strong">{project.title}</Chip>
-              <Chip>{project.state.replace(/_/g, ' ').toLowerCase()}</Chip>
-              <Chip>{project.mode} mode</Chip>
+      {page !== 'project' ? (
+        <header
+          className="page-hero mb-6 flex flex-wrap items-start justify-between gap-4 px-4 py-4 sm:px-5"
+          style={{ borderColor: 'var(--border)' }}
+        >
+          <div className="min-w-0">
+            <div className="flex items-center gap-2.5">
+              {PAGE_ICON[page] ? (
+                <span
+                  className="brand-mark flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+                  style={{ borderColor: 'var(--border)' }}
+                >
+                  <Icon name={PAGE_ICON[page] as IconName} size={18} />
+                </span>
+              ) : null}
+              <h1 className="t-title truncate" style={{ color: '#fff' }}>
+                {PAGE_TITLES[page]}
+              </h1>
             </div>
+            {project ? (
+              <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                <Chip tone="strong">{project.title}</Chip>
+                <Chip>{project.state.replace(/_/g, ' ').toLowerCase()}</Chip>
+                <Chip>{project.mode} mode</Chip>
+              </div>
+            ) : null}
+          </div>
+          {context.running ? (
+            <RunProgress kind={context.running.kind} progress={context.running.progress} message={context.running.message} />
           ) : null}
-        </div>
-        {context.running ? (
-          <RunProgress kind={context.running.kind} progress={context.running.progress} message={context.running.message} />
-        ) : null}
-      </header>
+        </header>
+      ) : null}
 
       <Suspense fallback={<PageSkeleton />}>
       {/*

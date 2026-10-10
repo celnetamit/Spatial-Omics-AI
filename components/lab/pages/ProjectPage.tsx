@@ -34,6 +34,105 @@ const WORKFLOW = [
   'Explain, validate and export',
 ];
 
+const START_STEPS = [
+  { title: 'Observe', detail: 'Select spatial transcriptomics, spatial proteomics or qualified combined spatial omics.' },
+  { title: 'Perturb', detail: 'Choose a molecular/genetic or known-drug perturbation with model-supported parameters.' },
+  { title: 'Propagate', detail: 'Separate direct target-cell response from first-neighbour and spatial GNN propagation.' },
+  { title: 'Rescue', detail: 'Simulate every eligible therapeutic rescue candidate before comparison or ranking.' },
+];
+
+const INFRASTRUCTURE_AREAS = [
+  { title: '01 Spatial omics input', detail: 'Spatial transcriptomics, spatial proteomics or qualified combined spatial omics with coordinates and metadata.' },
+  { title: '02 QC and preprocessing', detail: 'Validate data, canonicalize identifiers, check eligibility and preserve provenance before prediction.' },
+  { title: '03 Baseline tissue', detail: 'Analyze cells, genes/proteins, pathways, cell states, neighbourhoods and candidate interactions.' },
+  { title: '04 Virtual experiment', detail: 'Select either a molecular/genetic branch or a drug branch without changing the saved baseline object.' },
+  { title: '05 Direct response', detail: 'Calculate the explicit target-cell or target-state effect before any neighbourhood propagation.' },
+  { title: '06 Spatial propagation', detail: 'Build a versioned spatial graph, compute first-neighbour response and run the predictive model.' },
+  { title: '07 Altered tissue', detail: 'Assemble predicted molecular, pathway, cell-state, interaction and microenvironment layers.' },
+  { title: '08 Rescue comparison', detail: 'Retrieve eligible candidates, simulate each one separately and compare transparent component metrics.' },
+  { title: '09 Validate and export', detail: 'Explain mechanism, recommend a validation experiment and export a reproducible report bundle.' },
+];
+
+const STRATEGIC_AREAS = [
+  { title: 'Beginner', detail: 'Prepared cases, illustrated QC, locked safe parameters, small rescue set and guided explanations.' },
+  { title: 'Moderate', detail: 'Compatible uploads, supported targeting, evidence-backed dose/time choices and reproducible exports.' },
+  { title: 'Expert', detail: 'Full provenance, graph/model versions, seeds, repeats, sensitivity analysis and diagnostics.' },
+];
+
+const NEWS_HIGHLIGHTS = [
+  { title: 'Observed data uses neutral treatment with visible source dataset context.', date: 'OBSERVED' },
+  { title: 'Computed values link back to a defined method and software/model version.', date: 'COMPUTED' },
+  { title: 'Predicted layers carry an explicit prediction badge and uncertainty treatment.', date: 'PREDICTED' },
+  { title: 'AI-assisted narrative is evidence-grounded and never creates numerical biology.', date: 'INTERPRETED' },
+];
+
+const UPCOMING_EVENTS = [
+  { date: 'QC', title: 'Pipeline and eligibility', detail: 'Deterministic ingestion, preprocessing and reasons for blocking or warning.' },
+  { date: 'BIO', title: 'Baseline biology', detail: 'Compare baseline outputs with trusted reference workflows and annotations.' },
+  { date: 'GNN', title: 'Spatial contribution', detail: 'Validate against no-neighbour, no-edge, linear, MLP and shuffled-graph controls.' },
+  { date: 'RANK', title: 'Rescue ranking', detail: 'Assess component stability, uncertainty and benchmark correlation where outcomes exist.' },
+];
+
+const HERO_STATS = [
+  { label: 'Research cases', value: '2' },
+  { label: 'Model nodes', value: '66' },
+  { label: 'Candidate records', value: '22' },
+];
+
+const REQUIRED_SCREENS = [
+  'Project setup',
+  'Data and QC',
+  'Baseline tissue',
+  'Reference compare',
+  'Select experiment',
+  'Perturbation setup',
+  'Propagation',
+  'Predicted tissue',
+  'Rescue candidates',
+  'Rescue compare',
+  'Interpretation',
+  'Validate and report',
+];
+
+const VISUAL_LAYER_GROUPS = [
+  {
+    title: 'Baseline layers',
+    items: ['Cell type', 'Gene expression', 'Protein abundance', 'Pathway activity', 'Cell state', 'Spatial neighbourhood', 'Cell-cell interaction'],
+  },
+  {
+    title: 'Perturbation layers',
+    items: ['Direct response', 'First-neighbour response', 'Propagation intensity', 'Delta molecular/pathway layer', 'Predicted cell state', 'Adverse/off-target region', 'Uncertainty / OOD'],
+  },
+  {
+    title: 'Rescue layers',
+    items: ['Candidate direct response', 'Propagated rescue', 'Baseline vs altered vs rescue', 'Molecular/state/spatial recovery', 'Adverse burden', 'Resistance/adaptive response', 'Uncertainty'],
+  },
+];
+
+const AI_CONTRACT = [
+  { title: 'Allowed', detail: 'Explain QC, summarize observed/computed findings, retrieve and organize evidence, explain simulated differences and suggest validation experiments.' },
+  { title: 'Not allowed', detail: 'Change QC results, invent p-values or pathways, fabricate drug effects, bypass simulation, choose hidden numeric weights or give clinical instructions.' },
+  { title: 'Evidence object', detail: 'AI receives dataset IDs, selected cells/regions, feature statistics, perturbation evidence, predictions, candidate metrics, uncertainty and result labels.' },
+];
+
+const REPORT_SECTIONS = [
+  'Project metadata',
+  'QC and eligibility',
+  'Methods and versions',
+  'Baseline spatial analysis',
+  'Perturbation evidence',
+  'Direct response',
+  'Spatial graph and propagation',
+  'Predicted altered tissue',
+  'Adverse/off-target results',
+  'Rescue simulations',
+  'Candidate comparison',
+  'AI interpretation',
+  'Validation experiment',
+  'Reproducibility manifest',
+];
+
+
 export default function ProjectPage({
   context,
   onProjectChange,
@@ -102,17 +201,225 @@ export default function ProjectPage({
   };
 
   return (
-    <div className="space-y-4">
-      {/*
-        * The boundary is the first thing on the first screen and it was a grey
-        * panel among grey panels — the same weight as the form beside it, so
-        * the one statement the whole lab is built inside read as boilerplate to
-        * scroll past. It keeps a plain surface rather than a warning colour,
-        * because it is a scope statement and not an alert, but it now carries
-        * an accent edge and a mark so the eye registers it as a different kind
-        * of thing from the panels under it.
-        */}
+    <div className="space-y-5">
+      <section id="overview" className="sll-home-hero">
+        <div className="sll-home-hero-copy">
+          <div className="sll-hero-kicker">
+            <span>Spatial Omics AI</span>
+            <strong>Virtual LiveLab</strong>
+          </div>
+          <h2>Observe, perturb, propagate, rescue and validate</h2>
+          <p>
+            A research-use virtual experimentation platform for spatial perturbation propagation and AI-guided therapeutic
+            rescue. The scientific sequence is frozen: observe spatial omics, apply a controlled perturbation, propagate
+            effects through tissue, simulate rescue candidates, compare transparently and export validation-ready evidence.
+          </p>
+          <div className="landing-actions">
+            <Button variant="primary" onClick={() => document.getElementById('project-title')?.focus()}>
+              Start a project
+            </Button>
+            <Button variant="quiet" onClick={() => document.getElementById('methods-overview')?.scrollIntoView({ behavior: 'smooth' })}>
+              Explore methods
+            </Button>
+          </div>
+          <div className="sll-hero-stats" aria-label="Spatial Omics AI summary">
+            <div>
+              <strong>16</strong>
+              <span>Frozen workflow stages</span>
+            </div>
+            {HERO_STATS.map((item) => (
+              <div key={item.label}>
+                <strong>{item.value}</strong>
+                <span>{item.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="sll-home-hero-visual" aria-hidden="true">
+          <div className="sll-orbit">
+            {Array.from({ length: 42 }).map((_, index) => (
+              <span key={index} className={`cell-dot cell-dot-${(index % 5) + 1}`} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="methods-overview" className="sll-infra-section">
+        <div className="sll-section-heading">
+          <h3>Frozen V1 workflow</h3>
+          <p>
+            The handbook locks the scientific journey from spatial input to report export. The interface presents the
+            sequence as one page, while the live lab keeps each scientific object immutable and reproducible.
+          </p>
+        </div>
+        <div className="sll-infra-grid">
+          {INFRASTRUCTURE_AREAS.map((area, index) => (
+            <article key={area.title}>
+              <span className="sll-platform-number">{String(index + 1).padStart(2, '0')}</span>
+              <h4>{area.title}</h4>
+              <p>{area.detail}</p>
+              <span className="sll-card-link">Explore platform</span>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id="repurposing-overview" className="sll-strategic-section">
+        <div className="sll-section-heading">
+          <h3>Three user modes, one scientific result</h3>
+          <p>
+            Beginner, Moderate and Expert modes expose different controls and diagnostics, but the handbook requires
+            identical numerical outputs for the same data, parameters, model version and seed.
+          </p>
+        </div>
+        <div className="sll-strategic-grid">
+          {STRATEGIC_AREAS.map((area, index) => (
+            <article key={area.title}>
+              <div className={`sll-strategy-image sll-strategy-image-${index + 1}`} aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </div>
+              <p className="sll-card-eyebrow">User mode</p>
+              <h4>{area.title}</h4>
+              <p>{area.detail}</p>
+              <button type="button" onClick={() => document.getElementById(index === 1 ? 'visual-requirements-title' : 'project-form')?.scrollIntoView({ behavior: 'smooth' })}>Read more</button>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="sll-news-section">
+        <div className="sll-section-heading">
+          <h3>Scientific result labels</h3>
+          <p>
+            The UI distinguishes observed data, computed analysis, predicted simulation, AI-assisted interpretation,
+            hypotheses and validation recommendations. Color is never the only indicator.
+          </p>
+        </div>
+        <div className="sll-news-list">
+          {NEWS_HIGHLIGHTS.map((item) => (
+            <article key={item.title}>
+              <p className="sll-news-date">{item.date}</p>
+              <h4>{item.title}</h4>
+              <span>Review</span>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id="spatial-context" className="sll-research-section">
+        <div className="sll-research-links">
+          {REQUIRED_SCREENS.map((screen) => (
+            <button key={screen} type="button" onClick={() => document.getElementById('project-form')?.scrollIntoView({ behavior: 'smooth' })}>
+              {screen}
+            </button>
+          ))}
+        </div>
+        <div className="sll-research-copy">
+          <h3>Required screens</h3>
+          <h4>The navigation follows the scientific workflow, not generic software menus.</h4>
+          <p>
+            The locked workspace moves from project setup through data/QC, baseline tissue, experiment selection,
+            propagation, predicted tissue, rescue comparison, interpretation and validation/reporting. Users may inspect
+            previous results, but changing a scientific parameter creates a new run rather than overwriting the old one.
+          </p>
+          <button type="button" onClick={() => document.getElementById('research-boundary')?.scrollIntoView({ behavior: 'smooth' })}>Read the research boundary</button>
+        </div>
+      </section>
+
+      <section className="handbook-panel-grid" aria-labelledby="visual-requirements-title">
+        <div className="sll-section-heading handbook-wide-heading">
+          <h3 id="visual-requirements-title">Visualization and comparison requirements</h3>
+          <p>
+            Measured data, computed methods and predictions are visually separated. Direct response and neighbour
+            propagation use distinct symbols, uncertainty uses opacity or hatching, and comparison panels keep synchronized
+            scales when values are compared.
+          </p>
+        </div>
+        {VISUAL_LAYER_GROUPS.map((group) => (
+          <article key={group.title} className="handbook-card">
+            <h4>{group.title}</h4>
+            <ul>
+              {group.items.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </article>
+        ))}
+      </section>
+
+      <section className="handbook-split" aria-labelledby="ai-contract-title">
+        <div>
+          <p className="sll-card-eyebrow">AI and evidence subsystem</p>
+          <h3 id="ai-contract-title">AI explains evidence. It does not create numerical biology.</h3>
+          <p>
+            The handbook allows AI to organize evidence, explain structured results, generate testable hypotheses and
+            recommend validation experiments. Numerical outputs must come from explicit methods, calibrated parameters or
+            validated models.
+          </p>
+        </div>
+        <div className="handbook-mini-grid">
+          {AI_CONTRACT.map((item) => (
+            <article key={item.title} className="handbook-card">
+              <h4>{item.title}</h4>
+              <p>{item.detail}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="sll-events-section">
+        <div className="sll-section-heading">
+          <h3>Validation ladder</h3>
+          <p>
+            The release is accepted only when fixed datasets, scientific calculations, model outputs, uncertainty,
+            ranking behavior, security and reproducibility can be tested end to end.
+          </p>
+        </div>
+        <div className="sll-events-list">
+          {UPCOMING_EVENTS.map((event) => (
+            <article key={event.title}>
+              <time>{event.date}</time>
+              <div>
+                <h4>{event.title}</h4>
+                <p>{event.detail}</p>
+              </div>
+              <span>QA</span>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="sll-home-footer-strip">
+        <div>
+          <h3>Report and reproducibility manifest</h3>
+          <p>
+            Every export records dataset hashes, preprocessing versions, perturbation evidence, parameter-set version,
+            graph checksum, model version, random seed, warnings, uncertainty, limitations and output artifact hashes.
+          </p>
+        </div>
+        <nav aria-label="Report sections">
+          {REPORT_SECTIONS.map((link) => (
+            <button key={link} type="button" onClick={() => document.getElementById('project-form')?.scrollIntoView({ behavior: 'smooth' })}>
+              {link}
+            </button>
+          ))}
+        </nav>
+      </section>
+
+      <section className="quick-start-grid" aria-label="Quick start workflow">
+        {START_STEPS.map((step, index) => (
+          <article key={step.title} className="quick-start-card">
+            <span className="tnum">{String(index + 1).padStart(2, '0')}</span>
+            <h3>{step.title}</h3>
+            <p>{step.detail}</p>
+          </article>
+        ))}
+      </section>
+
       <section
+        id="research-boundary"
         className="overflow-hidden rounded-lg border"
         style={{
           borderColor: 'var(--border)',
@@ -138,23 +445,23 @@ export default function ProjectPage({
           </div>
         </div>
         <div className="border-t px-5 py-4" style={{ borderColor: 'var(--border)' }}>
-        <div className="t-body space-y-2.5" style={{ color: 'var(--ink-secondary)' }}>
-          <p>
-            This is a research and education platform for virtual experimentation. It is{' '}
-            <strong style={{ color: 'var(--ink)' }}>not a clinical treatment recommendation system</strong>, and no output
-            from it is clinical guidance.
-          </p>
-          <p>
-            Every numerical result comes from an explicit analysis method, a calibrated parameter or a trained model. The AI
-            layer explains structured results and organises evidence; it never produces a number, a map or a comparison, and
-            its output is checked against the evidence it was given before it is shown.
-          </p>
-          {context.meta?.modelPackMissing ? <Caveat tone="warning">{context.meta.modelPackMissing}</Caveat> : null}
+          <div className="t-body space-y-2.5" style={{ color: 'var(--ink-secondary)' }}>
+            <p>
+              This is a research and education platform for virtual experimentation. It is{' '}
+              <strong style={{ color: 'var(--ink)' }}>not a clinical treatment recommendation system</strong>, and no output
+              from it is clinical guidance.
+            </p>
+            <p>
+              Every numerical result comes from an explicit analysis method, a calibrated parameter or a trained model. The AI
+              layer explains structured results and organises evidence; it never produces a number, a map or a comparison, and
+              its output is checked against the evidence it was given before it is shown.
+            </p>
+            {context.meta?.modelPackMissing ? <Caveat tone="warning">{context.meta.modelPackMissing}</Caveat> : null}
+          </div>
         </div>
-      </div>
       </section>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div id="project-form" className="project-command-center grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
         <Section title="New project" subtitle="§6.1 — record the study before any computation.">
           <div className="space-y-3">
             <label className="block">
@@ -162,6 +469,7 @@ export default function ProjectPage({
                 Project title
               </span>
               <input
+                id="project-title"
                 type="text"
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
@@ -293,7 +601,7 @@ export default function ProjectPage({
 
           {projects.length > 0 ? (
             <Section title="Your projects">
-              <ul className="space-y-1">
+              <ul className="space-y-2">
                 {projects.map((entry) => (
                   <li key={entry.projectId}>
                     <button
@@ -302,7 +610,7 @@ export default function ProjectPage({
                         onProjectChange(entry);
                         context.navigate('data');
                       }}
-                      className="w-full rounded px-2 py-1.5 text-left text-[12px]"
+                      className="project-list-item interactive w-full rounded px-3 py-2.5 text-left text-[12px]"
                       style={{
                         background: entry.projectId === context.project?.projectId ? 'var(--surface-raised)' : 'transparent',
                         color: 'var(--ink-secondary)',

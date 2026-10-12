@@ -173,7 +173,6 @@ export default function PropagationPage({
             setLayerChoice(choice);
             if (choice.stage !== undefined) setStage(choice.stage);
           }}
-          height={500}
         />
         <p className="mt-2 text-[10.5px] leading-relaxed" style={{ color: 'var(--ink-muted)' }}>
           Directly perturbed cells are drawn as rings; every other cell is a disc. §11.3 asks for the direct response and the

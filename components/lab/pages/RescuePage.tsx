@@ -111,7 +111,6 @@ export default function RescuePage({
             choices={choices}
             selectedId={active?.id ?? ''}
             onSelectLayer={setLayerChoice}
-            height={440}
           />
         </Section>
       ) : null}

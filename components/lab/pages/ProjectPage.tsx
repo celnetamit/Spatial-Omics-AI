@@ -4,17 +4,33 @@
  * The research-use boundary and the frozen workflow are on this screen because
  * §6.1 puts them here: somebody should meet what the lab is and is not before
  * they run anything, not in a footnote on the report.
+ *
+ * This screen used to open with roughly eight sections of templated editorial
+ * copy above the actual form — a hero, an "infrastructure" grid, a "strategic"
+ * grid, a news list, a validation-ladder timeline — carrying a handful of
+ * hardcoded numbers ("16 frozen stages", "22 candidate records") that nothing
+ * kept in sync with the server. None of it was wrong exactly, but it buried
+ * the one thing a returning user opens this screen to do — start or resume a
+ * project — under several screens of scrolling, and it duplicated ground the
+ * dedicated About and Methods pages already cover more carefully. That content
+ * is gone; the boundary notice and the real twelve-step workflow reference
+ * stay, because §6.1 and §2 require them here specifically.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { api, ApiError, type CaseSummary, type ProjectSummary } from '../../../lib/api';
 import type { LabMode } from '../../../types';
 import { Button, Caveat, Section, StatTile } from '../../ui/Badges';
 import { Icon } from '../../ui/Icon';
+import { Search } from 'lucide-react';
 import { useToast } from '../../ui/ToastContext';
 import { integer, shortHash, timestamp } from '../../../lib/format';
 import type { WorkspaceContext } from '../Workspace';
 
+/** §2's frozen scientific sequence, at the resolution the methodology names it
+ *  — sixteen steps, which the twelve navigable screens group at a coarser
+ *  grain. Kept distinct from the sidebar's numbering on purpose: conflating
+ *  the two would make either list look wrong. */
 const WORKFLOW = [
   'Spatial omics input',
   'Validate, QC and preprocess',
@@ -34,104 +50,69 @@ const WORKFLOW = [
   'Explain, validate and export',
 ];
 
-const START_STEPS = [
-  { title: 'Observe', detail: 'Select spatial transcriptomics, spatial proteomics or qualified combined spatial omics.' },
-  { title: 'Perturb', detail: 'Choose a molecular/genetic or known-drug perturbation with model-supported parameters.' },
-  { title: 'Propagate', detail: 'Separate direct target-cell response from first-neighbour and spatial GNN propagation.' },
-  { title: 'Rescue', detail: 'Simulate every eligible therapeutic rescue candidate before comparison or ranking.' },
-];
+/**
+ * §10.3's state machine, grouped into the four buckets a project list reads
+ * at a glance. The thirteen underlying states (`ProjectState`) are too fine a
+ * grain for a status chip — nobody scans a project list looking for
+ * `GRAPH_READY` specifically — but the bucket a state falls into is derived
+ * from the same server-computed value, never guessed from the title or the
+ * timestamp.
+ */
+type StatusBucket = 'setup' | 'running' | 'predicted' | 'complete' | 'attention';
 
-const INFRASTRUCTURE_AREAS = [
-  { title: '01 Spatial omics input', detail: 'Spatial transcriptomics, spatial proteomics or qualified combined spatial omics with coordinates and metadata.' },
-  { title: '02 QC and preprocessing', detail: 'Validate data, canonicalize identifiers, check eligibility and preserve provenance before prediction.' },
-  { title: '03 Baseline tissue', detail: 'Analyze cells, genes/proteins, pathways, cell states, neighbourhoods and candidate interactions.' },
-  { title: '04 Virtual experiment', detail: 'Select either a molecular/genetic branch or a drug branch without changing the saved baseline object.' },
-  { title: '05 Direct response', detail: 'Calculate the explicit target-cell or target-state effect before any neighbourhood propagation.' },
-  { title: '06 Spatial propagation', detail: 'Build a versioned spatial graph, compute first-neighbour response and run the predictive model.' },
-  { title: '07 Altered tissue', detail: 'Assemble predicted molecular, pathway, cell-state, interaction and microenvironment layers.' },
-  { title: '08 Rescue comparison', detail: 'Retrieve eligible candidates, simulate each one separately and compare transparent component metrics.' },
-  { title: '09 Validate and export', detail: 'Explain mechanism, recommend a validation experiment and export a reproducible report bundle.' },
-];
+const RUNNING_STATES = new Set(['QUEUED', 'RUNNING', 'RESCUE_RUNNING']);
+const PREDICTED_STATES = new Set(['PREDICTED', 'RESCUE_READY']);
 
-const STRATEGIC_AREAS = [
-  { title: 'Beginner', detail: 'Prepared cases, illustrated QC, locked safe parameters, small rescue set and guided explanations.' },
-  { title: 'Moderate', detail: 'Compatible uploads, supported targeting, evidence-backed dose/time choices and reproducible exports.' },
-  { title: 'Expert', detail: 'Full provenance, graph/model versions, seeds, repeats, sensitivity analysis and diagnostics.' },
-];
+function statusBucket(project: ProjectSummary): StatusBucket {
+  if (project.failedStages.length > 0) return 'attention';
+  if (project.state === 'COMPLETE') return 'complete';
+  if (RUNNING_STATES.has(project.state)) return 'running';
+  if (PREDICTED_STATES.has(project.state)) return 'predicted';
+  return 'setup';
+}
 
-const NEWS_HIGHLIGHTS = [
-  { title: 'Observed data uses neutral treatment with visible source dataset context.', date: 'OBSERVED' },
-  { title: 'Computed values link back to a defined method and software/model version.', date: 'COMPUTED' },
-  { title: 'Predicted layers carry an explicit prediction badge and uncertainty treatment.', date: 'PREDICTED' },
-  { title: 'AI-assisted narrative is evidence-grounded and never creates numerical biology.', date: 'INTERPRETED' },
-];
+const BUCKET_LABEL: Record<StatusBucket, string> = {
+  setup: 'Setting up',
+  running: 'Running',
+  predicted: 'Predicted',
+  complete: 'Complete',
+  attention: 'Needs attention',
+};
 
-const UPCOMING_EVENTS = [
-  { date: 'QC', title: 'Pipeline and eligibility', detail: 'Deterministic ingestion, preprocessing and reasons for blocking or warning.' },
-  { date: 'BIO', title: 'Baseline biology', detail: 'Compare baseline outputs with trusted reference workflows and annotations.' },
-  { date: 'GNN', title: 'Spatial contribution', detail: 'Validate against no-neighbour, no-edge, linear, MLP and shuffled-graph controls.' },
-  { date: 'RANK', title: 'Rescue ranking', detail: 'Assess component stability, uncertainty and benchmark correlation where outcomes exist.' },
-];
+/**
+ * The colour each bucket uses, reusing tokens that already carry this exact
+ * meaning elsewhere in the lab rather than inventing a parallel palette.
+ * "Predicted" takes the §1.5 result-label colour a predicted layer uses on
+ * every chart; "Attention" and "Complete" take the status tokens the QC
+ * verdict badge uses; "Running" takes the accent; "Setting up" stays neutral
+ * ink, because nothing has gone right or wrong yet.
+ */
+const BUCKET_COLOUR: Record<StatusBucket, string> = {
+  setup: 'var(--ink-muted)',
+  // `--action` is tuned as a UI fill/border (3:1), not small text (4.5:1) —
+  // `--series-1-text` is the step already taken for exactly this elsewhere.
+  running: 'var(--series-1-text)',
+  predicted: 'var(--label-predicted)',
+  complete: 'var(--status-good)',
+  attention: 'var(--status-critical)',
+};
 
-const HERO_STATS = [
-  { label: 'Research cases', value: '2' },
-  { label: 'Model nodes', value: '66' },
-  { label: 'Candidate records', value: '22' },
-];
+function StatusChip({ bucket }: { bucket: StatusBucket }): React.ReactElement {
+  const colour = BUCKET_COLOUR[bucket];
+  return (
+    <span
+      className="t-caption inline-flex shrink-0 items-center gap-1 rounded-sm border px-1.5 py-[1px] font-medium uppercase tracking-wide"
+      style={{ color: colour, borderColor: colour }}
+    >
+      {bucket === 'running' ? (
+        <span aria-hidden="true" className="status-pulse-dot" style={{ background: colour }} />
+      ) : null}
+      {BUCKET_LABEL[bucket]}
+    </span>
+  );
+}
 
-const REQUIRED_SCREENS = [
-  'Project setup',
-  'Data and QC',
-  'Baseline tissue',
-  'Reference compare',
-  'Select experiment',
-  'Perturbation setup',
-  'Propagation',
-  'Predicted tissue',
-  'Rescue candidates',
-  'Rescue compare',
-  'Interpretation',
-  'Validate and report',
-];
-
-const VISUAL_LAYER_GROUPS = [
-  {
-    title: 'Baseline layers',
-    items: ['Cell type', 'Gene expression', 'Protein abundance', 'Pathway activity', 'Cell state', 'Spatial neighbourhood', 'Cell-cell interaction'],
-  },
-  {
-    title: 'Perturbation layers',
-    items: ['Direct response', 'First-neighbour response', 'Propagation intensity', 'Delta molecular/pathway layer', 'Predicted cell state', 'Adverse/off-target region', 'Uncertainty / OOD'],
-  },
-  {
-    title: 'Rescue layers',
-    items: ['Candidate direct response', 'Propagated rescue', 'Baseline vs altered vs rescue', 'Molecular/state/spatial recovery', 'Adverse burden', 'Resistance/adaptive response', 'Uncertainty'],
-  },
-];
-
-const AI_CONTRACT = [
-  { title: 'Allowed', detail: 'Explain QC, summarize observed/computed findings, retrieve and organize evidence, explain simulated differences and suggest validation experiments.' },
-  { title: 'Not allowed', detail: 'Change QC results, invent p-values or pathways, fabricate drug effects, bypass simulation, choose hidden numeric weights or give clinical instructions.' },
-  { title: 'Evidence object', detail: 'AI receives dataset IDs, selected cells/regions, feature statistics, perturbation evidence, predictions, candidate metrics, uncertainty and result labels.' },
-];
-
-const REPORT_SECTIONS = [
-  'Project metadata',
-  'QC and eligibility',
-  'Methods and versions',
-  'Baseline spatial analysis',
-  'Perturbation evidence',
-  'Direct response',
-  'Spatial graph and propagation',
-  'Predicted altered tissue',
-  'Adverse/off-target results',
-  'Rescue simulations',
-  'Candidate comparison',
-  'AI interpretation',
-  'Validation experiment',
-  'Reproducibility manifest',
-];
-
+type SortOrder = 'updated' | 'title';
 
 export default function ProjectPage({
   context,
@@ -149,6 +130,10 @@ export default function ProjectPage({
   const [referenceId, setReferenceId] = useState('');
   const [mode, setMode] = useState<LabMode>('basic');
   const [creating, setCreating] = useState(false);
+
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState<StatusBucket | 'all'>('all');
+  const [sort, setSort] = useState<SortOrder>('updated');
 
   useEffect(() => {
     void (async () => {
@@ -173,6 +158,25 @@ export default function ProjectPage({
 
   const chosen = cases.find((entry) => entry.caseId === caseId);
   const comparable = chosen ? cases.filter((entry) => chosen.comparableWith.includes(entry.caseId)) : [];
+
+  const bucketCounts = useMemo(() => {
+    const counts: Record<StatusBucket, number> = { setup: 0, running: 0, predicted: 0, complete: 0, attention: 0 };
+    for (const project of projects) counts[statusBucket(project)] += 1;
+    return counts;
+  }, [projects]);
+
+  const visibleProjects = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    const filtered = projects.filter((project) => {
+      if (filter !== 'all' && statusBucket(project) !== filter) return false;
+      if (needle && !project.title.toLowerCase().includes(needle)) return false;
+      return true;
+    });
+    const sorted = [...filtered];
+    if (sort === 'title') sorted.sort((a, b) => a.title.localeCompare(b.title));
+    else sorted.sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : a.updatedAt > b.updatedAt ? -1 : 0));
+    return sorted;
+  }, [projects, query, filter, sort]);
 
   const create = async (): Promise<void> => {
     if (!title.trim()) {
@@ -202,222 +206,6 @@ export default function ProjectPage({
 
   return (
     <div className="space-y-5">
-      <section id="overview" className="sll-home-hero">
-        <div className="sll-home-hero-copy">
-          <div className="sll-hero-kicker">
-            <span>Spatial Omics AI</span>
-            <strong>Virtual LiveLab</strong>
-          </div>
-          <h2>Observe, perturb, propagate, rescue and validate</h2>
-          <p>
-            A research-use virtual experimentation platform for spatial perturbation propagation and AI-guided therapeutic
-            rescue. The scientific sequence is frozen: observe spatial omics, apply a controlled perturbation, propagate
-            effects through tissue, simulate rescue candidates, compare transparently and export validation-ready evidence.
-          </p>
-          <div className="landing-actions">
-            <Button variant="primary" onClick={() => document.getElementById('project-title')?.focus()}>
-              Start a project
-            </Button>
-            <Button variant="quiet" onClick={() => document.getElementById('methods-overview')?.scrollIntoView({ behavior: 'smooth' })}>
-              Explore methods
-            </Button>
-          </div>
-          <div className="sll-hero-stats" aria-label="Spatial Omics AI summary">
-            <div>
-              <strong>16</strong>
-              <span>Frozen workflow stages</span>
-            </div>
-            {HERO_STATS.map((item) => (
-              <div key={item.label}>
-                <strong>{item.value}</strong>
-                <span>{item.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="sll-home-hero-visual" aria-hidden="true">
-          <div className="sll-orbit">
-            {Array.from({ length: 42 }).map((_, index) => (
-              <span key={index} className={`cell-dot cell-dot-${(index % 5) + 1}`} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="methods-overview" className="sll-infra-section">
-        <div className="sll-section-heading">
-          <h3>Frozen V1 workflow</h3>
-          <p>
-            The handbook locks the scientific journey from spatial input to report export. The interface presents the
-            sequence as one page, while the live lab keeps each scientific object immutable and reproducible.
-          </p>
-        </div>
-        <div className="sll-infra-grid">
-          {INFRASTRUCTURE_AREAS.map((area, index) => (
-            <article key={area.title}>
-              <span className="sll-platform-number">{String(index + 1).padStart(2, '0')}</span>
-              <h4>{area.title}</h4>
-              <p>{area.detail}</p>
-              <span className="sll-card-link">Explore platform</span>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section id="repurposing-overview" className="sll-strategic-section">
-        <div className="sll-section-heading">
-          <h3>Three user modes, one scientific result</h3>
-          <p>
-            Beginner, Moderate and Expert modes expose different controls and diagnostics, but the handbook requires
-            identical numerical outputs for the same data, parameters, model version and seed.
-          </p>
-        </div>
-        <div className="sll-strategic-grid">
-          {STRATEGIC_AREAS.map((area, index) => (
-            <article key={area.title}>
-              <div className={`sll-strategy-image sll-strategy-image-${index + 1}`} aria-hidden="true">
-                <span />
-                <span />
-                <span />
-              </div>
-              <p className="sll-card-eyebrow">User mode</p>
-              <h4>{area.title}</h4>
-              <p>{area.detail}</p>
-              <button type="button" onClick={() => document.getElementById(index === 1 ? 'visual-requirements-title' : 'project-form')?.scrollIntoView({ behavior: 'smooth' })}>Read more</button>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="sll-news-section">
-        <div className="sll-section-heading">
-          <h3>Scientific result labels</h3>
-          <p>
-            The UI distinguishes observed data, computed analysis, predicted simulation, AI-assisted interpretation,
-            hypotheses and validation recommendations. Color is never the only indicator.
-          </p>
-        </div>
-        <div className="sll-news-list">
-          {NEWS_HIGHLIGHTS.map((item) => (
-            <article key={item.title}>
-              <p className="sll-news-date">{item.date}</p>
-              <h4>{item.title}</h4>
-              <span>Review</span>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section id="spatial-context" className="sll-research-section">
-        <div className="sll-research-links">
-          {REQUIRED_SCREENS.map((screen) => (
-            <button key={screen} type="button" onClick={() => document.getElementById('project-form')?.scrollIntoView({ behavior: 'smooth' })}>
-              {screen}
-            </button>
-          ))}
-        </div>
-        <div className="sll-research-copy">
-          <h3>Required screens</h3>
-          <h4>The navigation follows the scientific workflow, not generic software menus.</h4>
-          <p>
-            The locked workspace moves from project setup through data/QC, baseline tissue, experiment selection,
-            propagation, predicted tissue, rescue comparison, interpretation and validation/reporting. Users may inspect
-            previous results, but changing a scientific parameter creates a new run rather than overwriting the old one.
-          </p>
-          <button type="button" onClick={() => document.getElementById('research-boundary')?.scrollIntoView({ behavior: 'smooth' })}>Read the research boundary</button>
-        </div>
-      </section>
-
-      <section className="handbook-panel-grid" aria-labelledby="visual-requirements-title">
-        <div className="sll-section-heading handbook-wide-heading">
-          <h3 id="visual-requirements-title">Visualization and comparison requirements</h3>
-          <p>
-            Measured data, computed methods and predictions are visually separated. Direct response and neighbour
-            propagation use distinct symbols, uncertainty uses opacity or hatching, and comparison panels keep synchronized
-            scales when values are compared.
-          </p>
-        </div>
-        {VISUAL_LAYER_GROUPS.map((group) => (
-          <article key={group.title} className="handbook-card">
-            <h4>{group.title}</h4>
-            <ul>
-              {group.items.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </article>
-        ))}
-      </section>
-
-      <section className="handbook-split" aria-labelledby="ai-contract-title">
-        <div>
-          <p className="sll-card-eyebrow">AI and evidence subsystem</p>
-          <h3 id="ai-contract-title">AI explains evidence. It does not create numerical biology.</h3>
-          <p>
-            The handbook allows AI to organize evidence, explain structured results, generate testable hypotheses and
-            recommend validation experiments. Numerical outputs must come from explicit methods, calibrated parameters or
-            validated models.
-          </p>
-        </div>
-        <div className="handbook-mini-grid">
-          {AI_CONTRACT.map((item) => (
-            <article key={item.title} className="handbook-card">
-              <h4>{item.title}</h4>
-              <p>{item.detail}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="sll-events-section">
-        <div className="sll-section-heading">
-          <h3>Validation ladder</h3>
-          <p>
-            The release is accepted only when fixed datasets, scientific calculations, model outputs, uncertainty,
-            ranking behavior, security and reproducibility can be tested end to end.
-          </p>
-        </div>
-        <div className="sll-events-list">
-          {UPCOMING_EVENTS.map((event) => (
-            <article key={event.title}>
-              <time>{event.date}</time>
-              <div>
-                <h4>{event.title}</h4>
-                <p>{event.detail}</p>
-              </div>
-              <span>QA</span>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="sll-home-footer-strip">
-        <div>
-          <h3>Report and reproducibility manifest</h3>
-          <p>
-            Every export records dataset hashes, preprocessing versions, perturbation evidence, parameter-set version,
-            graph checksum, model version, random seed, warnings, uncertainty, limitations and output artifact hashes.
-          </p>
-        </div>
-        <nav aria-label="Report sections">
-          {REPORT_SECTIONS.map((link) => (
-            <button key={link} type="button" onClick={() => document.getElementById('project-form')?.scrollIntoView({ behavior: 'smooth' })}>
-              {link}
-            </button>
-          ))}
-        </nav>
-      </section>
-
-      <section className="quick-start-grid" aria-label="Quick start workflow">
-        {START_STEPS.map((step, index) => (
-          <article key={step.title} className="quick-start-card">
-            <span className="tnum">{String(index + 1).padStart(2, '0')}</span>
-            <h3>{step.title}</h3>
-            <p>{step.detail}</p>
-          </article>
-        ))}
-      </section>
-
       <section
         id="research-boundary"
         className="overflow-hidden rounded-lg border"
@@ -461,7 +249,7 @@ export default function ProjectPage({
         </div>
       </section>
 
-      <div id="project-form" className="project-command-center grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div id="project-form" className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
         <Section title="New project" subtitle="§6.1 — record the study before any computation.">
           <div className="space-y-3">
             <label className="block">
@@ -577,32 +365,99 @@ export default function ProjectPage({
           </div>
         </Section>
 
-        <div className="space-y-4">
-          {chosen ? (
-            <Section title="Selected dataset" subtitle={chosen.title}>
-              <Caveat tone="warning">{chosen.simulationNotice}</Caveat>
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <StatTile label="Observations" value={integer(chosen.observations)} unit="cells" />
-                <StatTile label="Features" value={integer(chosen.features)} />
-              </div>
-              <dl className="t-small mt-4 space-y-1.5" style={{ color: 'var(--ink-secondary)' }}>
-                <Meta term="Organism" value={chosen.organism} />
-                <Meta term="Tissue" value={chosen.tissue} />
-                <Meta term="Condition" value={chosen.condition} />
-                <Meta term="Assay" value={chosen.assay} />
-                <Meta term="Resolution" value={chosen.resolution} />
-                <Meta term="Coordinate unit" value={chosen.coordinateUnit === 'um' ? 'µm' : chosen.coordinateUnit} />
-                <Meta term="Licence" value={chosen.licence} />
-                <Meta term="Checksum" value={shortHash(chosen.checksum, 16)} />
-                <Meta term="Generated" value={timestamp(chosen.generatedAt)} />
-              </dl>
-            </Section>
-          ) : null}
+        {chosen ? (
+          <Section title="Selected dataset" subtitle={chosen.title}>
+            <Caveat tone="warning">{chosen.simulationNotice}</Caveat>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <StatTile label="Observations" value={integer(chosen.observations)} unit="cells" />
+              <StatTile label="Features" value={integer(chosen.features)} />
+            </div>
+            <dl className="t-small mt-4 space-y-1.5" style={{ color: 'var(--ink-secondary)' }}>
+              <Meta term="Organism" value={chosen.organism} />
+              <Meta term="Tissue" value={chosen.tissue} />
+              <Meta term="Condition" value={chosen.condition} />
+              <Meta term="Assay" value={chosen.assay} />
+              <Meta term="Resolution" value={chosen.resolution} />
+              <Meta term="Coordinate unit" value={chosen.coordinateUnit === 'um' ? 'µm' : chosen.coordinateUnit} />
+              <Meta term="Licence" value={chosen.licence} />
+              <Meta term="Checksum" value={shortHash(chosen.checksum, 16)} />
+              <Meta term="Generated" value={timestamp(chosen.generatedAt)} />
+            </dl>
+          </Section>
+        ) : null}
+      </div>
 
-          {projects.length > 0 ? (
-            <Section title="Your projects">
-              <ul className="space-y-2">
-                {projects.map((entry) => (
+      {/*
+        * The project workspace.
+        *
+        * Search, a status filter and a sort order, all computed client-side
+        * over the project list the page already fetched — no new endpoint,
+        * because the list a single researcher keeps here is not the scale
+        * that needs server-side paging, and adding one would be new surface
+        * for no present need. If that stops being true, the filtering logic
+        * here moves to the query rather than disappearing.
+        */}
+      {projects.length > 0 ? (
+        <Section
+          title="Your projects"
+          subtitle={`${projects.length} project${projects.length === 1 ? '' : 's'} · ${bucketCounts.attention > 0 ? `${bucketCounts.attention} need${bucketCounts.attention === 1 ? 's' : ''} attention` : 'none need attention'}`}
+        >
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <label className="relative flex-1" style={{ minWidth: '12rem' }}>
+              <span className="sr-only">Search your projects</span>
+              <Search
+                size={13}
+                strokeWidth={2}
+                className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2"
+                style={{ color: 'var(--ink-muted)' }}
+              />
+              <input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search by title…"
+                className="w-full rounded border py-1.5 pl-7 pr-2 text-[12px]"
+                style={{ color: 'var(--ink)' }}
+              />
+            </label>
+            <select
+              value={sort}
+              onChange={(event) => setSort(event.target.value as SortOrder)}
+              className="rounded border px-2 py-1.5 text-[12px]"
+              style={{ color: 'var(--ink)' }}
+              aria-label="Sort projects"
+            >
+              <option value="updated">Recently updated</option>
+              <option value="title">Title A–Z</option>
+            </select>
+          </div>
+
+          <div className="mb-3 flex flex-wrap gap-1.5" role="group" aria-label="Filter by status">
+            <FilterChip label="All" count={projects.length} active={filter === 'all'} onClick={() => setFilter('all')} />
+            {(['attention', 'running', 'predicted', 'complete', 'setup'] as StatusBucket[])
+              .filter((bucket) => bucketCounts[bucket] > 0)
+              .map((bucket) => (
+                <FilterChip
+                  key={bucket}
+                  label={BUCKET_LABEL[bucket]}
+                  count={bucketCounts[bucket]}
+                  active={filter === bucket}
+                  colour={BUCKET_COLOUR[bucket]}
+                  onClick={() => setFilter(bucket)}
+                />
+              ))}
+          </div>
+
+          {visibleProjects.length === 0 ? (
+            <p className="t-small py-6 text-center" style={{ color: 'var(--ink-muted)' }}>
+              {query ? `No project matches "${query}".` : 'No project in this status.'}
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {visibleProjects.map((entry) => {
+                const bucket = statusBucket(entry);
+                const open = entry.projectId === context.project?.projectId;
+                return (
                   <li key={entry.projectId}>
                     <button
                       type="button"
@@ -610,26 +465,31 @@ export default function ProjectPage({
                         onProjectChange(entry);
                         context.navigate('data');
                       }}
-                      className="project-list-item interactive w-full rounded px-3 py-2.5 text-left text-[12px]"
+                      className="project-card interactive w-full rounded-lg border px-3.5 py-3 text-left"
                       style={{
-                        background: entry.projectId === context.project?.projectId ? 'var(--surface-raised)' : 'transparent',
-                        color: 'var(--ink-secondary)',
+                        borderColor: open ? 'var(--series-1)' : 'var(--border)',
+                        background: open ? 'var(--surface-raised)' : 'var(--surface)',
                       }}
                     >
-                      <span className="block truncate" style={{ color: 'var(--ink)' }}>
-                        {entry.title}
-                      </span>
-                      <span className="text-[10.5px]" style={{ color: 'var(--ink-muted)' }}>
-                        {entry.state.replace(/_/g, ' ').toLowerCase()} · {timestamp(entry.updatedAt)}
-                      </span>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <span className="t-body block truncate font-medium" style={{ color: 'var(--ink)' }}>
+                            {entry.title}
+                          </span>
+                          <span className="t-caption mt-1 block" style={{ color: 'var(--ink-muted)' }}>
+                            {entry.mode} mode · updated {timestamp(entry.updatedAt)}
+                          </span>
+                        </div>
+                        <StatusChip bucket={bucket} />
+                      </div>
                     </button>
                   </li>
-                ))}
-              </ul>
-            </Section>
-          ) : null}
-        </div>
-      </div>
+                );
+              })}
+            </ul>
+          )}
+        </Section>
+      ) : null}
 
       <Section title="The frozen V1 workflow" subtitle="§2 — the scientific sequence is fixed and this lab follows it in order.">
         <ol className="grid gap-x-6 gap-y-1 text-[11.5px] sm:grid-cols-2 lg:grid-cols-4" style={{ color: 'var(--ink-secondary)' }}>
@@ -649,6 +509,43 @@ export default function ProjectPage({
         </p>
       </Section>
     </div>
+  );
+}
+
+function FilterChip({
+  label,
+  count,
+  active,
+  colour,
+  onClick,
+}: {
+  label: string;
+  count: number;
+  active: boolean;
+  colour?: string;
+  onClick: () => void;
+}): React.ReactElement {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className="interactive t-caption flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-medium"
+      style={{
+        // `--series-1-text`, not `--series-1`: the border only needs 3:1 as a
+        // UI outline, but this colour doubles as the label's text, which
+        // needs 4.5:1 — `--series-1` was validated for the former only.
+        borderColor: active ? (colour ?? 'var(--series-1-text)') : 'var(--border)',
+        color: active ? (colour ?? 'var(--series-1-text)') : 'var(--ink-secondary)',
+        background: active ? 'var(--surface-raised)' : 'transparent',
+      }}
+    >
+      {label}
+      {/* `--ink-secondary`, not `--ink-muted`, once the chip is active: the
+          active background is `--surface-raised`, and muted ink was tuned
+          against the page's own surface rather than this raised one. */}
+      <span style={{ color: active ? 'var(--ink-secondary)' : 'var(--ink-muted)' }}>{count}</span>
+    </button>
   );
 }
 

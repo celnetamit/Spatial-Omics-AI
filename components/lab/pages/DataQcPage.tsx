@@ -177,7 +177,6 @@ export default function DataQcPage({
           choices={QC_LAYERS}
           selectedId={layerChoice.id}
           onSelectLayer={setLayerChoice}
-          height={420}
         />
       </Section>
 

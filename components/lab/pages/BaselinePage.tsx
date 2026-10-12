@@ -162,7 +162,6 @@ export default function BaselinePage({
           selectedId={active?.id ?? ''}
           onSelectLayer={setLayerChoice}
           edges={showEdges ? (results.graph.edgeSample ?? null) : null}
-          height={520}
         />
         {showEdges && results.graph.edgeSample ? (
           <p className="mt-2 text-[10.5px]" style={{ color: 'var(--ink-muted)' }}>

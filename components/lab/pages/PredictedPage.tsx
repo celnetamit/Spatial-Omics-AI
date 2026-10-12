@@ -65,6 +65,35 @@ export default function PredictedPage({
   const layer = useLayer(context.predictionRunId, active?.kind ?? null, active?.key ?? '');
   const uncertainty = useLayer(context.predictionRunId, uncertaintyOverlay ? 'uncertainty' : null, '');
 
+  /*
+   * The uncertainty channel is opacity, not a second colour ramp.
+   *
+   * §11.3: "uncertainty should be represented with opacity, hatching, border
+   * style or an uncertainty layer so color is not overloaded". Colour is
+   * already carrying the value here.
+   *
+   * This has to stay above the `!results` return below, not after it. It used
+   * to sit below, which is a real Rules-of-Hooks violation rather than a style
+   * preference: on the first render after opening this page directly — the
+   * prediction has not arrived yet, so `results` is still null, the component
+   * returns early and this `useMemo` is never called. The moment the fetch
+   * resolves, the same mounted instance re-renders with `results` populated,
+   * tries to call a hook it skipped last time, and React throws rather than
+   * guess which previous hook this one was supposed to be. It reproduced
+   * reliably on every direct or bookmarked link to this page — exactly what a
+   * returning user's link looks like — and the error boundary caught it,
+   * which is why the symptom was a page that rendered nothing useful rather
+   * than a visible stack trace.
+   */
+  const opacity = useMemo(() => {
+    if (!uncertaintyOverlay || !uncertainty.layer) return null;
+    const values = uncertainty.layer.values;
+    const finite = values.filter(Number.isFinite);
+    if (finite.length === 0) return null;
+    const high = Math.max(...finite) || 1;
+    return values.map((value) => (Number.isFinite(value) ? 1 - 0.7 * Math.min(1, value / high) : 0.25));
+  }, [uncertaintyOverlay, uncertainty.layer]);
+
   if (!results) {
     return (
       <EmptyState
@@ -77,22 +106,6 @@ export default function PredictedPage({
   }
 
   const points = observations ? observations.x.map((x, i) => ({ x, y: observations.y[i] as number })) : [];
-
-  /*
-   * The uncertainty channel is opacity, not a second colour ramp.
-   *
-   * §11.3: "uncertainty should be represented with opacity, hatching, border
-   * style or an uncertainty layer so color is not overloaded". Colour is
-   * already carrying the value here.
-   */
-  const opacity = useMemo(() => {
-    if (!uncertaintyOverlay || !uncertainty.layer) return null;
-    const values = uncertainty.layer.values;
-    const finite = values.filter(Number.isFinite);
-    if (finite.length === 0) return null;
-    const high = Math.max(...finite) || 1;
-    return values.map((value) => (Number.isFinite(value) ? 1 - 0.7 * Math.min(1, value / high) : 0.25));
-  }, [uncertaintyOverlay, uncertainty.layer]);
 
   const topChanges = results.altered.nodeMeanDelta
     .map((value, index) => ({ symbol: results.nodeSymbols[index] as string, value }))
@@ -143,7 +156,6 @@ export default function PredictedPage({
           selectedId={active?.id ?? ''}
           onSelectLayer={setLayerChoice}
           opacity={opacity}
-          height={500}
         />
         {uncertaintyOverlay && opacity ? (
           <p className="mt-2 text-[10.5px]" style={{ color: 'var(--ink-muted)' }}>

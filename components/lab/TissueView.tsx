@@ -37,7 +37,7 @@ export default function TissueView({
   opacity,
   edges,
   inspector,
-  height = 460,
+  height,
   view,
   onViewChange,
   title,
@@ -54,6 +54,8 @@ export default function TissueView({
   opacity?: number[] | null;
   edges?: { source: number; target: number; type: string }[] | null;
   inspector?: (index: number) => React.ReactNode;
+  /** Overrides the aspect-ratio sizing below with a fixed pixel height. No
+   *  caller currently passes this; kept as an escape hatch. */
   height?: number;
   view?: ViewState;
   onViewChange?: (view: ViewState) => void;
@@ -61,6 +63,30 @@ export default function TissueView({
 }): React.ReactElement {
   const [hovered, setHovered] = useState<number | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
+
+  /*
+   * Every page used to give the canvas container a fixed height (420–520px).
+   * On a desktop panel that suits a landscape section, but on a 390px phone
+   * the same height against a ~330px column turned a 4:3 section into a
+   * roughly 2:3 box, and the map drew letterboxed between large empty bands.
+   *
+   * The container's height now follows the data's own bounding box, the same
+   * ratio `TissueCanvas` fits its transform to. The ratio is clamped so an
+   * unusually narrow or wide section cannot produce an extreme box.
+   */
+  const aspectRatio = useMemo(() => {
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (const point of points) {
+      if (point.x < minX) minX = point.x;
+      if (point.x > maxX) maxX = point.x;
+      if (point.y < minY) minY = point.y;
+      if (point.y > maxY) maxY = point.y;
+    }
+    const width = maxX - minX;
+    const height = maxY - minY;
+    if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return 4 / 3;
+    return Math.min(2, Math.max(0.75, width / height));
+  }, [points]);
 
   const scale = useMemo(
     () => buildScale(layer?.values ?? [], layer?.scale ?? 'sequential', layer?.categories ?? null),
@@ -92,7 +118,27 @@ export default function TissueView({
         ) : null}
         <div
           className="relative overflow-hidden rounded border"
-          style={{ borderColor: 'var(--border)', background: 'var(--surface-sunken)', height }}
+          style={
+            height !== undefined
+              ? { borderColor: 'var(--border)', background: 'var(--surface-sunken)', height }
+              : {
+                  borderColor: 'var(--border)',
+                  background: 'var(--surface-sunken)',
+                  /*
+                   * The explicit width matters. With `width: auto`, CSS
+                   * carries min-height and max-height across the ratio into
+                   * a minimum and maximum width: an 18rem floor became a
+                   * ~384px minimum width and pushed the map past a 330px
+                   * phone column, where it was clipped on the right. A
+                   * definite width keeps the box in its column and lets the
+                   * floor and ceiling act on the height alone.
+                   */
+                  width: '100%',
+                  aspectRatio: `${aspectRatio}`,
+                  minHeight: '15rem',
+                  maxHeight: '38rem',
+                }
+          }
         >
           {layer && points.length > 0 ? (
             <TissueCanvas

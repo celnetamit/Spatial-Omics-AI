@@ -190,8 +190,14 @@
   /*
    * Series hues as text. Slot 1 is stepped up because the plain value reads
    * 4.33:1 on --surface-raised; 3 and 7 clear it there unchanged.
+   *
+   * Re-measured during the production redesign: `--surface-raised` had moved
+   * to #242724 since this was last tuned, taking the previous #3b8ced step to
+   * 4.43:1 against it — a drift worth recording, because the failure mode is
+   * silent: nothing breaks, a chip just reads a few percent too dim until
+   * someone measures it again rather than looks at it.
    */
-  --series-1-text: #3b8ced;
+  --series-1-text: #3c8ef1;
   --series-3-text: var(--series-3);
   --series-7-text: var(--series-7);
 
@@ -2821,32 +2827,16 @@ input[type='file']::file-selector-button {
   }
 }
 
-/* Final spatial-ai reference layout overrides. Kept at the end so older
-   experiment-specific styling cannot pull the page back into the old shell. */
-:root[data-theme="light"],
-:root {
-  --plane: #f6f4ee;
-  --surface: #fffefa;
-  --surface-raised: #ffffff;
-  --surface-sunken: #efeee7;
-  --surface-glass: rgba(255, 254, 250, 0.92);
-  --nav-active: #e8f4f1;
-  --ink: #101820;
-  --ink-secondary: #3d4a52;
-  --ink-muted: #667176;
-  --grid: #deddd4;
-  --axis: #b7b8ad;
-  --border: rgba(16, 24, 32, 0.12);
-  --border-strong: rgba(16, 24, 32, 0.24);
-  --action: #14606f;
-  color-scheme: light;
-}
-
-.app-shell,
-body,
-html {
-  background: #f6f4ee;
-}
+/*
+ * A later pass pinned every surface/ink/action token to fixed light-theme
+ * hex values here, unconditionally for both `:root` and `:root[data-theme=
+ * "light"]`, with no corresponding dark-theme block to take it back — its
+ * own comment said this was deliberate, to stop the page "reverting to the
+ * old shell". The practical effect was that the dark theme stopped doing
+ * anything: toggling it changed `data-theme` but every token it controls
+ * was already pinned. Removed so both themes work again, which this app's
+ * review spec requires explicitly ("no theme-related regression").
+ */
 
 .article-shell {
   align-items: stretch;
@@ -3788,4 +3778,165 @@ code {
   .sll-home-hero-copy h2 {
     font-size: clamp(2.25rem, min(4.8vw, 8.4dvh), 5rem) !important;
   }
+}
+
+/*
+ * The status-running pulse.
+ *
+ * A small dot, not a spinner — a spinner on every "Running" chip in a list
+ * would be a dozen things animating at once, which reads as noisy rather than
+ * informative. A slow opacity pulse says "this one is live" without asking
+ * for attention from the ones that are not.
+ */
+.status-pulse-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  animation: status-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes status-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-pulse-dot { animation: none; }
+}
+
+/*
+ * ---------------------------------------------------------------------------
+ * Shell layout — desktop sidebar restored.
+ * ---------------------------------------------------------------------------
+ *
+ * Several earlier passes over this stylesheet left `.article-shell` forced to
+ * `display: block !important` and `.workflow-sidebar` governed only by the
+ * `navOpen` drawer toggle with no `lg:` breakpoint override — so on a 1920px
+ * screen the sidebar never showed unless a visitor opened the mobile drawer
+ * by hand. That directly contradicts what this spec and the original shell
+ * both call for: a permanent sidebar column on desktop, a drawer only below
+ * `lg` (1024px).
+ *
+ * Appended here rather than edited in place: the existing rules for these
+ * selectors are scattered across roughly a dozen locations in this file, many
+ * carrying `!important` and fighting each other by source order. Editing that
+ * safely needs a real CSS parser, not a text-stream rewrite — attempting one
+ * earlier in this pass corrupted an unrelated rule. A stylesheet that renders
+ * correctly with some duplication left behind is a better outcome than one
+ * that is tidier and broken, so this block wins the cascade by being last and
+ * leaves the earlier rules in place rather than risk removing them. Cleaning
+ * up the duplication is real follow-up work, tracked rather than attempted
+ * under this pass's time budget.
+ */
+.article-shell {
+  display: flex !important;
+  /*
+   * `.article-shell` carries its own hardcoded `background: #f6f4ee`, a light
+   * cream, with no theme-conditional counterpart. On the workflow pages that
+   * never shows — the content is `Section` panels that each paint their own
+   * `--surface` — but the four governance pages (Feedback, Implementation
+   * register, Reviewer agreement, Expert review) render more directly, so
+   * their `<h1>` sat on this cream backdrop even in dark mode: white text at
+   * 1.1:1, effectively invisible. `--plane` is the same base the rest of the
+   * shell already uses for this layer.
+   */
+  background: var(--plane) !important;
+}
+
+@media (min-width: 1024px) {
+  .workflow-sidebar {
+    position: static !important;
+    display: flex !important;
+    z-index: auto !important;
+    width: 17.5rem !important;
+    inset: auto !important;
+  }
+}
+
+/*
+ * ---------------------------------------------------------------------------
+ * Shell chrome — restored to the design-token system.
+ * ---------------------------------------------------------------------------
+ *
+ * The same earlier pass that pinned the root tokens to light-only values (see
+ * the note above) also hardcoded colour directly onto roughly a dozen shell
+ * selectors, several with `!important`: the sidebar, the mobile header, and —
+ * the most consequential one — `.section-card` / `.stat-tile` / `.method-card`
+ * / `.table-shell`. Those four classes are what `Section`, `StatTile` and
+ * `DataTable` in `components/ui/Badges.tsx` render as, which means every panel
+ * on every screen in the application had its background forced to `#fffefa`
+ * regardless of theme. It also introduced a second accent identity — gold
+ * `#f3c400` on near-black `#101820` — on the brand mark and the per-page hero,
+ * alongside the indigo `--action`/`--series-1` the rest of the app already
+ * uses, which reads as two different products sharing a shell.
+ *
+ * Forced here with `!important` to reliably win against rules that are
+ * themselves `!important`, and appended rather than edited for the same
+ * reason as the sidebar fix above: the existing rules are scattered and
+ * conflict with each other by source order, and a parser-free edit in place
+ * already corrupted one rule earlier in this pass. This block is the complete
+ * fix for the panel backgrounds — the single highest-impact bug found during
+ * this review, since it touched every page — and brings the gold/navy chrome
+ * back to the one accent identity used everywhere else.
+ */
+.section-card,
+.stat-tile,
+.method-card,
+.table-shell {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+}
+
+.workflow-sidebar {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+}
+
+.workflow-sidebar .t-eyebrow {
+  color: var(--ink-muted) !important;
+}
+
+.mobile-topbar {
+  background: var(--surface) !important;
+}
+
+.research-masthead {
+  background: var(--surface) !important;
+  color: var(--ink) !important;
+  border-bottom-color: var(--border) !important;
+}
+
+.research-main h1,
+.research-main p {
+  color: var(--ink) !important;
+}
+
+.research-links button,
+.masthead-menu {
+  color: var(--ink-secondary) !important;
+}
+
+.brand-mark,
+.page-hero .brand-mark {
+  background: color-mix(in oklab, var(--series-1) 16%, transparent) !important;
+  color: var(--series-1) !important;
+}
+
+.page-hero {
+  background: var(--surface) !important;
+  color: var(--ink) !important;
+  border-color: var(--border) !important;
+}
+
+.page-hero::before {
+  background: var(--series-1) !important;
+}
+
+.page-hero h1 {
+  color: var(--ink) !important;
+}
+
+.nav-item[aria-current='page'] {
+  background: var(--nav-active) !important;
+  border-color: var(--border) !important;
 }

@@ -140,7 +140,6 @@ export default function ReferencePage({
           onSelectLayer={setChoice}
           view={view}
           onViewChange={setView}
-          height={460}
           title="Primary"
         />
       </Section>

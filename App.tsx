@@ -301,19 +301,36 @@ export default function App(): React.ReactElement {
               <span className="brand-mark flex h-11 w-11 shrink-0 items-center justify-center">
                 <Icon name="propagation" size={22} />
               </span>
+              {/*
+                * `p`, not `h1`. The per-page title in the content header below
+                * (Workspace.tsx) is the page's real heading — "Data & QC",
+                * "Baseline tissue" — and is what a screen reader's heading
+                * navigation should land on first. This is sitewide branding,
+                * present on every screen, and a second `<h1>` here gave every
+                * page two level-one headings with no way to tell which one
+                * was "the" title.
+                */}
               <div className="min-w-0">
-                <p className="t-caption font-semibold uppercase" style={{ color: 'var(--ink-muted)' }}>
+                <p className="truncate text-[1.18rem] font-semibold leading-tight sm:text-[1.42rem]" style={{ color: 'var(--ink)' }}>
                   Spatial Omics AI
                 </p>
-                <h1 className="truncate text-[1.18rem] font-semibold leading-tight sm:text-[1.42rem]" style={{ color: 'var(--ink)' }}>
-                  Spatial Intelligence Workbench
-                </h1>
+                <p className="t-caption" style={{ color: 'var(--ink-muted)' }}>
+                  Virtual LiveLab
+                </p>
               </div>
             </div>
+            {/*
+              * Two links, not four. "Methods" and "Repurposing" used to scroll
+              * to sections of this same page ("methods-overview",
+              * "repurposing-overview") that no longer exist — the first was a
+              * duplicate of the dedicated Methods & model card screen, the
+              * second named a different lab entirely and pointed nowhere once
+              * its anchor was removed, so the button silently did nothing. The
+              * real Methods page already has its own sidebar entry, which is
+              * where a reader goes to find it now.
+              */}
             <nav className="research-links" aria-label="Primary">
-              <button type="button" onClick={() => goHome('overview')}>Overview</button>
-              <button type="button" onClick={() => goHome('methods-overview')}>Methods</button>
-              <button type="button" onClick={() => goHome('repurposing-overview')}>Repurposing</button>
+              <button type="button" onClick={() => goHome('research-boundary')}>Overview</button>
               <button type="button" onClick={() => goHome('project-form')}>Start project</button>
             </nav>
             <button
@@ -428,37 +445,14 @@ export default function App(): React.ReactElement {
 
           <main id="main" tabIndex={-1} className="min-w-0 flex-1 overflow-y-auto">
           {/*
-            * The small-screen header. It carries the one control that would
-            * otherwise be unreachable once the sidebar is a drawer, and the
-            * lab's name, so the page still identifies itself.
+            * There used to be a second, near-identical header here — a sticky
+            * bar with its own hamburger button and "Spatial Omics AI
+            * contents" label, shown only below `lg`. The masthead above is
+            * not hidden on narrow screens and already carries a "Contents"
+            * button that opens the same drawer, so on a phone the page opened
+            * with two stacked rows offering the same action. Removed; the
+            * masthead now does this job at every width.
             */}
-          <div
-            className="mobile-topbar sticky top-0 z-20 flex items-center gap-3 border-b px-4 py-2.5 lg:hidden"
-            style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}
-          >
-            <button
-              type="button"
-              onClick={() => setNavOpen(true)}
-              aria-expanded={navOpen}
-              aria-controls="workflow-nav"
-              className="-ml-1 rounded p-1.5"
-              style={{ color: 'var(--ink)' }}
-            >
-              <span className="sr-only">Open the contents menu</span>
-              <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-                <path d="M2 4.5h14M2 9h14M2 13.5h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              </svg>
-            </button>
-            {/*
-              * The lab's name, not the page's. The page already announces
-              * itself in the <h1> immediately below, and showing it twice wasted
-              * the one line of vertical space a phone can least afford — while
-              * leaving the product unidentified outside the closed drawer.
-              */}
-            <p className="min-w-0 truncate text-[12.5px] font-semibold" style={{ color: 'var(--ink)' }}>
-              Spatial Omics AI contents
-            </p>
-          </div>
           <Suspense fallback={<CentredNote text="Loading…" />}>
             {GOVERNANCE_PAGES.includes(page) ? (
               <div className="workspace-page mx-auto max-w-4xl px-5 py-5 sm:px-6 lg:px-8">

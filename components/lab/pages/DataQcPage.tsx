@@ -77,7 +77,7 @@ export default function DataQcPage({
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatTile
           label="Analysis verdict"
           value={results.qc.verdict.toUpperCase()}
@@ -143,7 +143,7 @@ export default function DataQcPage({
                 <span>
                   {check.rationale}
                   {check.blocksPrediction ? (
-                    <em className="ml-1" style={{ color: 'var(--status-warning)' }}>
+                    <em className="ml-1" style={{ color: 'var(--status-warning-text)' }}>
                       Blocks prediction.
                     </em>
                   ) : null}

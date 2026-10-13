@@ -55,7 +55,7 @@ export default function MethodsPage({
         ) : card ? (
           <>
             <Caveat tone="warning">{card.whatTheMetricsMean}</Caveat>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <StatTile label="Architecture" value={String(card.architecture.kind ?? '—').split(',')[0] ?? '—'} detail={`${card.architecture.hiddenDim} hidden × ${card.architecture.layers} layers`} />
               <StatTile label="Parameters" value={integer(Number(card.architecture.parameters ?? 0))} />
               <StatTile label="Ensemble" value={String(card.architecture.ensembleMembers ?? '—')} unit="members" />

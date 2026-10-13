@@ -12,7 +12,7 @@
  * version of this control that means anything.
  */
 
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyReply } from 'fastify';
 import { config } from '../config';
 import type { Services } from './index';
 import { fail, requireSession, type Sessions } from './shared';
@@ -24,6 +24,23 @@ const HUB_BASE = (): string => {
   const index = verify.indexOf('/api/');
   return index > 0 ? verify.slice(0, index) : 'https://live-labs.org';
 };
+
+/*
+ * A session with no portal token has no portal session to act for:
+ * authentication is disabled (a local or demo deployment), or the portal
+ * issued no token. The routes below used to call the portal anyway, which
+ * sent the submission, the learner's text included, to the production hub
+ * with no credentials. The hub refused it and the learner was told "This is
+ * a defect". Say what is true instead, and make no network call.
+ */
+function notConnected(reply: FastifyReply, what: string): FastifyReply {
+  return fail(reply, 503, 'UNAUTHENTICATED', `This session is not connected to the portal, so ${what} cannot be recorded from it.`, {
+    suggestedAction: 'Open the lab from the portal and try again. Nothing was sent.',
+  });
+}
+
+/* A portal refusal is not a lab defect; the default INTERNAL advice said it was. */
+const REFUSED = { suggestedAction: 'Nothing was recorded. Open the lab again from the portal to renew your session, then try again.' };
 
 async function callHub(
   path: string,
@@ -67,6 +84,7 @@ export async function registerGovernanceRoutes(
     const session = requireSession(request, reply, sessions);
     if (!session) return reply;
 
+    if (!session.hubToken) return notConnected(reply, 'your feedback');
     const result = await callHub('/api/labs/feedback', 'POST', session.hubToken, {
       ...request.body,
       lab: config.auth.labSlug,
@@ -79,7 +97,7 @@ export async function registerGovernanceRoutes(
       });
     }
     if (!result.ok) {
-      return fail(reply, result.status, 'INTERNAL', 'The portal refused the feedback submission.');
+      return fail(reply, result.status, 'INTERNAL', 'The portal refused the feedback submission.', REFUSED);
     }
     services.store.audit({
       actorId: session.identity.userId,
@@ -105,6 +123,17 @@ export async function registerGovernanceRoutes(
       return fail(reply, 403, 'FORBIDDEN', 'This account is not an expert reviewer.');
     }
 
+    if (!session.hubToken) {
+      return reply.send({
+        status: 'unknown',
+        signed: false,
+        reason: 'This session is not connected to the portal, so this lab cannot confirm whether the agreement is signed. Access stays closed.',
+        portalReachable: false,
+        endpointPresent: null,
+        version: AGREEMENT_VERSION,
+        fingerprint: agreementFingerprint(),
+      });
+    }
     const result = await callHub(
       `/api/labs/reviewer-agreement?lab=${encodeURIComponent(config.auth.labSlug)}`,
       'GET',
@@ -166,6 +195,7 @@ export async function registerGovernanceRoutes(
       return fail(reply, 403, 'FORBIDDEN', 'This account is not an expert reviewer.');
     }
 
+    if (!session.hubToken) return notConnected(reply, 'the acknowledgement');
     const result = await callHub('/api/labs/reviewer-agreement', 'POST', session.hubToken, {
       ...request.body,
       lab: config.auth.labSlug,
@@ -180,7 +210,7 @@ export async function registerGovernanceRoutes(
       });
     }
     if (!result.ok) {
-      return fail(reply, result.status, 'INTERNAL', 'The portal refused the acknowledgement.');
+      return fail(reply, result.status, 'INTERNAL', 'The portal refused the acknowledgement.', REFUSED);
     }
     services.store.audit({
       actorId: session.identity.userId,
@@ -198,6 +228,7 @@ export async function registerGovernanceRoutes(
       return fail(reply, 403, 'FORBIDDEN', 'This account is not an expert reviewer.');
     }
 
+    if (!session.hubToken) return notConnected(reply, 'the review');
     const result = await callHub('/api/labs/expert-review', 'POST', session.hubToken, {
       ...request.body,
       lab: config.auth.labSlug,
@@ -209,7 +240,7 @@ export async function registerGovernanceRoutes(
       });
     }
     if (!result.ok) {
-      return fail(reply, result.status, 'INTERNAL', 'The portal refused the review submission.');
+      return fail(reply, result.status, 'INTERNAL', 'The portal refused the review submission.', REFUSED);
     }
     services.store.audit({
       actorId: session.identity.userId,

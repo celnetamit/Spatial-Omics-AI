@@ -20,11 +20,18 @@ export const MODE_LABEL: Record<LabMode, string> = {
   expert: 'Advanced',
 };
 
-/** The one-line description of what a mode asks of the learner. */
+/**
+ * The one-line description of what a mode gives the learner in *this* lab.
+ *
+ * The labels above are shared vocabulary; these lines are not. They were
+ * copied with this file from LogicLab and described guided and faulty
+ * circuits. Each now names what the mode actually adds here (see the mode
+ * filters in server/src/routes/results.ts).
+ */
 export const MODE_SUMMARY: Record<LabMode, string> = {
-  basic: 'Beginner — understand and complete guided circuits',
-  moderate: 'Intermediate — diagnose and repair faulty circuits',
-  expert: 'Advanced — design, verify, compare and justify',
+  basic: 'Beginner — the guided workflow, every result with its explanation',
+  moderate: 'Intermediate — adds the diagnostics behind each step: preprocessing, annotation and graph checks',
+  expert: 'Advanced — adds full provenance, the mechanistic reference, resistance detail and machine-readable export',
 };
 
 /** The label mid-sentence, e.g. "available in intermediate mode". */

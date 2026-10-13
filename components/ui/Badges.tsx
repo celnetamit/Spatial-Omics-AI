@@ -73,11 +73,12 @@ export function ConfidenceBadge({
   rule?: string | undefined;
   className?: string;
 }): React.ReactElement {
-  const colour = `var(--status-${CONFIDENCE_STATUS[confidence]})`;
+  const status = CONFIDENCE_STATUS[confidence];
   return (
     <span
       className={`inline-flex items-center gap-1 rounded-sm px-1.5 py-[1px] text-[10px] font-medium ${className}`}
-      style={{ color: colour, border: `1px solid ${colour}` }}
+      // The word takes the text-safe step; the outline keeps the mark colour.
+      style={{ color: `var(--status-${status}-text)`, border: `1px solid var(--status-${status})` }}
       title={rule ?? ''}
     >
       {/* Icon plus label: a status colour never carries meaning alone. */}
@@ -93,7 +94,7 @@ export function VerdictBadge({ verdict }: { verdict: 'pass' | 'warning' | 'fail'
   return (
     <span
       className="inline-flex items-center gap-1 rounded-sm px-1.5 py-[1px] text-[10px] font-semibold uppercase"
-      style={{ color: `var(--status-${status})`, border: `1px solid var(--status-${status})` }}
+      style={{ color: `var(--status-${status}-text)`, border: `1px solid var(--status-${status})` }}
     >
       <span aria-hidden="true">{mark}</span>
       {verdict}
@@ -140,11 +141,16 @@ export function StatTile({
       className="stat-tile rounded-lg border px-3.5 py-3"
       style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}
     >
-      <div className="flex items-baseline justify-between gap-2">
+      {/*
+        * The badge never shrinks: when the label and badge do not fit on one
+        * line, the badge wraps below the label. Squeezed, "Not interpretable"
+        * broke across two lines and ran into the tile edge at 1024px.
+        */}
+      <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
         <span className="t-eyebrow" style={{ color: 'var(--ink-muted)' }}>
           {label}
         </span>
-        {badge}
+        {badge ? <span className="shrink-0 whitespace-nowrap">{badge}</span> : null}
       </div>
       {/*
         * The value is the point of the tile, so it is given the display step and
@@ -152,12 +158,12 @@ export function StatTile({
         * close enough in weight that the tile read as a paragraph with a big
         * first word rather than as a figure with a caption.
         */}
-      <div className="mt-1.5 flex items-baseline gap-1.5">
+      <div className="mt-1.5 flex flex-wrap items-baseline gap-x-1.5">
         <span className="t-display" style={{ color: 'var(--ink)' }}>
           {value}
         </span>
         {unit ? (
-          <span className="t-small" style={{ color: 'var(--ink-muted)' }}>
+          <span className="t-small whitespace-nowrap" style={{ color: 'var(--ink-muted)' }}>
             {unit}
           </span>
         ) : null}

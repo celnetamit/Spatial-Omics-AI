@@ -8,9 +8,12 @@
  * easy thing to act on.
  */
 
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api, ApiError, type LabMeta, type PerturbationDefinition, type ProjectSummary, type SessionUser } from '../../lib/api';
 import { PAGE_TITLES, type Page } from '../../types';
+import { projectStateLabel } from '../../lib/format';
+import { MODE_LABEL, type LabMode } from '../../lib/governance/modeLabels';
+import ModeSwitcher from '../ui/ModeSwitcher';
 
 /*
  * Reference screens belong to the lab, not to a project: the model card, the
@@ -76,6 +79,7 @@ export default function Workspace({
   onProjectChange,
   restoring = false,
   onRegisterCommands,
+  onUserRefresh,
 }: {
   page: Page;
   navigate: (page: Page) => void;
@@ -87,6 +91,8 @@ export default function Workspace({
   restoring?: boolean;
   /** Publishes this workspace's runnable actions to the command palette. */
   onRegisterCommands?: ((commands: Command[]) => void) | undefined;
+  /** Re-reads the signed-in user; a completed prediction can open a mode. */
+  onUserRefresh?: (() => Promise<void>) | undefined;
 }): React.ReactElement {
   const toast = useToast();
   const [definition, setDefinition] = useState<PerturbationDefinition | null>(null);
@@ -109,13 +115,14 @@ export default function Workspace({
         void refreshProject();
         if (status.status === 'complete') {
           toast.push('success', `${PAGE_TITLES[page] ?? 'Run'} finished`, 'Results are ready.');
+          if (status.kind === 'prediction') void onUserRefresh?.();
         } else if (status.status === 'failed') {
           toast.push('error', 'The run failed', status.error?.message ?? 'No reason was given.');
         } else if (status.status === 'cancelled') {
           toast.push('warning', 'The run was cancelled', 'Artefacts written before the stop are kept.');
         }
       },
-      [refreshProject, toast, page],
+      [refreshProject, toast, page, onUserRefresh],
     ),
   );
 
@@ -246,6 +253,47 @@ export default function Workspace({
   const prediction = useRunResults(predictionRunId);
   const rescue = useRunResults(rescueRunId);
 
+  /*
+   * Switching mode re-reads the results: the server shapes what it returns by
+   * the project's mode (diagnostics and provenance depth). The numbers are the
+   * same in every mode (§3), so nothing is re-run.
+   */
+  const [modeBusy, setModeBusy] = useState(false);
+  const changeMode = useCallback(
+    async (mode: LabMode) => {
+      if (!project || mode === project.mode) return;
+      setModeBusy(true);
+      try {
+        const { project: updated } = await api.setMode(project.projectId, mode);
+        onProjectChange(updated);
+        analysis.reload();
+        prediction.reload();
+        rescue.reload();
+        toast.push('success', `${MODE_LABEL[mode]} mode`, 'Same results; this mode shows its own controls and depth of detail.');
+      } catch (error) {
+        toast.push('error', 'The mode was not changed', error instanceof ApiError ? error.message : 'Try again in a moment.');
+      } finally {
+        setModeBusy(false);
+      }
+    },
+    [project, onProjectChange, analysis, prediction, rescue, toast],
+  );
+
+  // Say so when a mode opens during the session (Intermediate, after the
+  // first completed prediction), rather than leaving it to be noticed.
+  const previousModes = useRef<LabMode[] | null>(null);
+  useEffect(() => {
+    const now = user?.availableModes ?? null;
+    const before = previousModes.current;
+    previousModes.current = now;
+    if (!before || !now) return;
+    for (const mode of now) {
+      if (!before.includes(mode)) {
+        toast.push('success', `${MODE_LABEL[mode]} mode is now open`, 'Switch to it from the mode control at the top of any page.');
+      }
+    }
+  }, [user?.availableModes, toast]);
+
   return (
     <div className={`workspace-page workspace-page-${page} mx-auto px-5 py-6 sm:px-6 lg:px-8`}>
       {/*
@@ -259,7 +307,12 @@ export default function Workspace({
         * offers. Chips separate them, and a rule under the header gives the
         * content below an edge to start from instead of floating.
         */}
-      {page !== 'project' ? (
+      {/*
+        * Every page gets this header, the Project page included. It used to be
+        * skipped there because the page drew its own hero; that hero is gone,
+        * and without this the page had no h1 at all.
+        */}
+      {(
         <header
           className="page-hero mb-6 flex flex-wrap items-start justify-between gap-4 px-4 py-4 sm:px-5"
           style={{ borderColor: 'var(--border)' }}
@@ -274,23 +327,36 @@ export default function Workspace({
                   <Icon name={PAGE_ICON[page] as IconName} size={18} />
                 </span>
               ) : null}
-              <h1 className="t-title truncate" style={{ color: '#fff' }}>
+              <h1 className="t-title truncate" style={{ color: 'var(--ink)' }}>
                 {PAGE_TITLES[page]}
               </h1>
             </div>
             {project ? (
               <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
                 <Chip tone="strong">{project.title}</Chip>
-                <Chip>{project.state.replace(/_/g, ' ').toLowerCase()}</Chip>
-                <Chip>{project.mode} mode</Chip>
+                <Chip>{projectStateLabel(project.state)}</Chip>
               </div>
             ) : null}
           </div>
-          {context.running ? (
-            <RunProgress kind={context.running.kind} progress={context.running.progress} message={context.running.message} />
+          {project || context.running ? (
+            <div className="flex flex-col items-start gap-2 sm:items-end">
+              {project ? (
+                <ModeSwitcher
+                  current={project.mode}
+                  available={user?.availableModes ?? ['basic']}
+                  locks={user?.lockedModes ?? {}}
+                  busy={modeBusy}
+                  onChange={(mode) => void changeMode(mode)}
+                  onLocked={(mode, reason) => toast.push('info', `${MODE_LABEL[mode]} is locked`, reason)}
+                />
+              ) : null}
+              {context.running ? (
+                <RunProgress kind={context.running.kind} progress={context.running.progress} message={context.running.message} />
+              ) : null}
+            </div>
           ) : null}
         </header>
-      ) : null}
+      )}
 
       <Suspense fallback={<PageSkeleton />}>
       {/*
@@ -316,9 +382,9 @@ export default function Workspace({
       {page === 'baseline' && !restoring && project ? <BaselinePage context={context} analysis={analysis} /> : null}
       {page === 'reference' && !restoring && project ? <ReferencePage context={context} analysis={analysis} /> : null}
       {page === 'experiment' && !restoring && project ? <ExperimentPage context={context} /> : null}
-      {page === 'propagation' && !restoring && project ? <PropagationPage context={context} prediction={prediction} /> : null}
-      {page === 'predicted' && !restoring && project ? <PredictedPage context={context} prediction={prediction} /> : null}
-      {page === 'rescue' && !restoring && project ? <RescuePage context={context} rescue={rescue} /> : null}
+      {page === 'propagation' && !restoring && project ? <PropagationPage context={context} prediction={prediction} analysis={analysis} /> : null}
+      {page === 'predicted' && !restoring && project ? <PredictedPage context={context} prediction={prediction} analysis={analysis} /> : null}
+      {page === 'rescue' && !restoring && project ? <RescuePage context={context} rescue={rescue} analysis={analysis} /> : null}
       {page === 'compare' && !restoring && project ? <ComparePage context={context} rescue={rescue} /> : null}
       {page === 'interpret' && !restoring && project ? <InterpretPage context={context} /> : null}
       {page === 'validate' && !restoring && project ? <ValidatePage context={context} prediction={prediction} /> : null}

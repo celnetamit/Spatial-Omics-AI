@@ -92,3 +92,16 @@ export function titleCase(value: string): string {
 export function plural(count: number, singular: string, pluralForm?: string): string {
   return `${count.toLocaleString()} ${count === 1 ? singular : pluralForm ?? `${singular}s`}`;
 }
+
+/**
+ * A project's derived state, as a reader should see it.
+ *
+ * Most state names read correctly once lower-cased. RESCUE_RUNNING does not:
+ * the engine derives it once the rescue simulations have *finished* (only the
+ * report stage moves a project on to COMPLETE), so "rescue running" told
+ * people a job was still going on every project whose rescue was done.
+ */
+export function projectStateLabel(state: string): string {
+  if (state === 'RESCUE_RUNNING') return 'rescue simulated';
+  return state.replace(/_/g, ' ').toLowerCase();
+}

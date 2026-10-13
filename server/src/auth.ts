@@ -95,25 +95,49 @@ export function can(identity: Identity, capability: Capability): boolean {
   return identity.roles.some((role) => allowed.includes(role));
 }
 
+/** What a learner has done in this lab that can open a mode. */
+export interface ModeProgress {
+  /** A prediction run (one simulated experiment) has completed in any of their projects. */
+  completedExperiment: boolean;
+}
+
 /**
- * Tier gate for Expert mode.
+ * Whether this account may open a mode. See `modeLock` for the rules.
  *
- * Expert is the paid tier. Reviewers, admins and instructors are exempt, and
- * that exemption lives here in the lab rather than on the hub, so a reviewer can
- * always open the mode they are being asked to review.
- *
- * §3's cross-mode identity rule is what makes this gate safe to have at all:
- * the modes differ in which controls, diagnostics and exports are available,
- * never in the numbers. A Beginner and an Expert running the same scientific
+ * §3's cross-mode identity rule is what makes a gate safe to have at all: the
+ * modes differ in which controls, diagnostics and exports are available, never
+ * in the numbers. A Beginner and an Advanced user running the same scientific
  * configuration get the same result, so the gate withholds depth of access and
  * not correctness.
  */
-export function canOpenMode(identity: Identity, mode: 'basic' | 'moderate' | 'expert'): boolean {
-  if (identity.isReviewer || identity.roles.includes('admin') || identity.roles.includes('instructor')) {
-    return true;
-  }
+export function canOpenMode(identity: Identity, mode: 'basic' | 'moderate' | 'expert', progress?: ModeProgress): boolean {
+  return modeLock(identity, mode, progress) === null;
+}
+
+/**
+ * Why a mode is closed to this account, or null when it is open.
+ *
+ * - Administrators (a hub super admin arrives as `admin`), reviewers and
+ *   instructors open every mode. The exemption lives here rather than on the
+ *   hub, so a reviewer can always open the mode they are asked to review.
+ * - Beginner is open to everyone.
+ * - Intermediate opens after the learner's first completed experiment (a
+ *   prediction run in any of their projects), or on a tier that includes it.
+ * - Advanced is the paid tier.
+ *
+ * The reason is returned rather than a bare false so the client can say how to
+ * open a mode without restating these rules.
+ */
+export function modeLock(identity: Identity, mode: 'basic' | 'moderate' | 'expert', progress?: ModeProgress): string | null {
+  if (identity.isReviewer || identity.roles.includes('admin') || identity.roles.includes('instructor')) return null;
   const order = { basic: 0, moderate: 1, expert: 2 } as const;
-  return order[mode] <= order[identity.tier];
+  if (order[mode] <= order[identity.tier]) return null;
+  if (mode === 'moderate') {
+    return progress?.completedExperiment
+      ? null
+      : 'Intermediate opens after your first completed experiment: define a perturbation and run the prediction in any project.';
+  }
+  return 'Advanced is open to administrators and reviewers, and on the Advanced tier.';
 }
 
 // ---------------------------------------------------------------------------
@@ -181,6 +205,8 @@ interface HubResponse {
     name?: string;
     email?: string;
     roles?: string[];
+    /** The hub sends one role string ("SUPER_ADMIN" or "USER"), not `roles`. */
+    role?: string;
     isReviewer?: boolean;
     tier?: string;
     researchConsent?: boolean;
@@ -190,12 +216,22 @@ interface HubResponse {
 
 const ROLE_NAMES = new Set<Role>(['learner', 'instructor', 'author', 'reviewer', 'researcher', 'admin']);
 
-function toRoles(raw: string[] | undefined, isReviewer: boolean): Role[] {
+/*
+ * Hub roles that carry a role here. authorize-lab sends one `role` string, not
+ * the `roles` array read below. Reading only the array made every hub super
+ * admin a learner on the Beginner tier, so admins could not open Intermediate
+ * or Advanced. The hub itself treats only SUPER_ADMIN as an administrator.
+ */
+const HUB_ROLE_TO_LAB: Record<string, Role> = { SUPER_ADMIN: 'admin' };
+
+function toRoles(raw: string[] | undefined, isReviewer: boolean, hubRole?: string): Role[] {
   const roles = new Set<Role>(['learner']);
   for (const name of raw ?? []) {
     const lower = name.trim().toLowerCase() as Role;
     if (ROLE_NAMES.has(lower)) roles.add(lower);
   }
+  const mapped = hubRole ? HUB_ROLE_TO_LAB[hubRole.trim().toUpperCase()] : undefined;
+  if (mapped) roles.add(mapped);
   if (isReviewer) roles.add('reviewer');
   return [...roles];
 }
@@ -270,7 +306,7 @@ export async function authorizeWithHub(launchToken: string): Promise<AuthorizeRe
         userId: body.user.id,
         displayName: body.user.name ?? 'Learner',
         email: body.user.email ?? null,
-        roles: toRoles(body.user.roles, isReviewer),
+        roles: toRoles(body.user.roles, isReviewer, body.user.role),
         tier,
         isReviewer,
         researchConsent: Boolean(body.user.researchConsent),

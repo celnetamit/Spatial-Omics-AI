@@ -113,7 +113,7 @@ export default function ReportPage({ context }: { context: WorkspaceContext }): 
                 </span>
                 <span className="flex items-center gap-2 text-[10.5px]">
                   {section.present ? (
-                    <span style={{ color: 'var(--status-good)' }}>present</span>
+                    <span style={{ color: 'var(--status-good-text)' }}>present</span>
                   ) : (
                     <span style={{ color: 'var(--ink-muted)' }}>not run</span>
                   )}

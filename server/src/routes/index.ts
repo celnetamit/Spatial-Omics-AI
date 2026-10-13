@@ -14,7 +14,7 @@
 import type { FastifyInstance } from 'fastify';
 import { config } from '../config';
 import {
-  authorizeWithHub, canOpenMode, developmentIdentity, issueSessionToken, newSessionId,
+  authorizeWithHub, canOpenMode, developmentIdentity, issueSessionToken, modeLock, newSessionId,
   participantPseudonym, type Session,
 } from '../auth';
 import type { Store, LabMode } from '../store';
@@ -23,7 +23,7 @@ import { publicCaseSummary } from '../content/loader';
 import type { JobQueue } from '../jobs/queue';
 import type { AiAdapter } from '../ai/adapter';
 import {
-  cookieOptions, fail, queryNumber, queryString, requireCapability, requireOwnership,
+  cookieOptions, fail, modeProgress, queryNumber, queryString, requireCapability, requireOwnership,
   requireSession, sessionFor, SESSION_COOKIE, type Sessions,
 } from './shared';
 import { registerProjectRoutes } from './projects';
@@ -124,7 +124,7 @@ export async function registerRoutes(app: FastifyInstance, services: Services): 
       const session = newSession(identity, null);
       services.sessions.set(session.id, session);
       reply.setCookie(SESSION_COOKIE, issueSessionToken(session.id, session.expiresAt), cookieOptions());
-      return reply.send({ user: publicUser(session), authDisabled: true });
+      return reply.send({ user: publicUser(session, services.store), authDisabled: true });
     }
 
     if (!token) {
@@ -155,7 +155,7 @@ export async function registerRoutes(app: FastifyInstance, services: Services): 
       subject: result.identity.userId,
       detail: { tier: result.identity.tier, isReviewer: result.identity.isReviewer },
     });
-    return reply.send({ user: publicUser(session), authDisabled: false });
+    return reply.send({ user: publicUser(session, services.store), authDisabled: false });
   });
 
   /**
@@ -171,7 +171,7 @@ export async function registerRoutes(app: FastifyInstance, services: Services): 
   app.get('/api/v1/session', async (request, reply) => {
     const session = sessionFor(request, sessions);
     return reply.send({
-      user: session ? publicUser(session) : null,
+      user: session ? publicUser(session, services.store) : null,
       authDisabled: !config.auth.enabled,
     });
   });
@@ -197,7 +197,17 @@ export async function registerRoutes(app: FastifyInstance, services: Services): 
     return reply.send({
       version: config.version,
       commit: config.commit,
-      portal: { loginUrl: config.auth.loginUrl, homeUrl: config.auth.homeUrl },
+      portal: {
+        loginUrl: config.auth.loginUrl,
+        homeUrl: config.auth.homeUrl,
+        /*
+         * The "Back to homepage" target: this lab's page on the portal. The
+         * portal serves lab pages at /dashboard/labs/<slug>, on the origin that
+         * also serves authorize-lab, so a staging deployment links to its own
+         * portal without separate configuration.
+         */
+        labUrl: config.auth.labPageUrl || `${new URL(config.auth.verifyUrl).origin}/dashboard/labs/${config.auth.labSlug}`,
+      },
       authEnabled: config.auth.enabled,
       modes: (['basic', 'moderate', 'expert'] as LabMode[]).map((mode) => ({
         id: mode,
@@ -410,7 +420,9 @@ function newSession(identity: ReturnType<typeof developmentIdentity>, hubToken: 
   };
 }
 
-export function publicUser(session: Session): Record<string, unknown> {
+export function publicUser(session: Session, store: Store): Record<string, unknown> {
+  const progress = modeProgress(store, session.identity.userId);
+  const modes: LabMode[] = ['basic', 'moderate', 'expert'];
   return {
     userId: session.identity.userId,
     displayName: session.identity.displayName,
@@ -419,8 +431,13 @@ export function publicUser(session: Session): Record<string, unknown> {
     isReviewer: session.identity.isReviewer,
     researchConsent: session.identity.researchConsent,
     /** Which modes this account may open, decided on the server. */
-    availableModes: (['basic', 'moderate', 'expert'] as LabMode[]).filter((mode) =>
-      canOpenMode(session.identity, mode),
+    availableModes: modes.filter((mode) => canOpenMode(session.identity, mode, progress)),
+    /** For each closed mode, why, so the client can say how to open it. */
+    lockedModes: Object.fromEntries(
+      modes.flatMap((mode) => {
+        const reason = modeLock(session.identity, mode, progress);
+        return reason ? [[mode, reason]] : [];
+      }),
     ),
   };
 }

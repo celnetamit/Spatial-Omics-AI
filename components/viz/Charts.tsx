@@ -19,7 +19,7 @@
  *    than the mark.
  */
 
-import { useId, useMemo, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { categorical, diverging, sequential } from '../../lib/colour';
 import { num, percent } from '../../lib/format';
 
@@ -31,6 +31,86 @@ interface Margin {
 }
 
 const DEFAULT_MARGIN: Margin = { top: 12, right: 16, bottom: 34, left: 56 };
+
+/*
+ * The width a chart actually has, so it can be drawn at that width.
+ *
+ * Every chart here used to be a fixed viewBox scaled to fit (`width="100%"`),
+ * which shrank the text along with the drawing: measured on the bar charts,
+ * 11px labels rendered at 9px on a 390px phone, 6px at 320px, and 7px in the
+ * two-column panels at 1024px. Charts now lay themselves out for the measured
+ * width (the plot area flexes, the text does not) and only fall back to
+ * scaling before the first measurement or if one is unavailable.
+ *
+ * A callback ref, because some charts mount their wrapper only after an
+ * early return; the first measurement happens during commit, so the
+ * re-render lands before the first paint.
+ */
+function useAvailableWidth(): [(node: HTMLDivElement | null) => void, number | null] {
+  const [width, setWidth] = useState<number | null>(null);
+  const observer = useRef<ResizeObserver | null>(null);
+  const ref = useCallback((node: HTMLDivElement | null) => {
+    observer.current?.disconnect();
+    observer.current = null;
+    if (!node) return;
+    const measure = (): void => {
+      const next = Math.floor(node.clientWidth);
+      setWidth((current) => (next > 0 && next !== current ? next : current));
+    };
+    measure();
+    if (typeof ResizeObserver !== 'undefined') {
+      observer.current = new ResizeObserver(measure);
+      observer.current.observe(node);
+    }
+  }, []);
+  useEffect(() => () => observer.current?.disconnect(), []);
+  return [ref, width];
+}
+
+/*
+ * Label truncation by measured width, not by a characters-per-unit estimate.
+ *
+ * The estimate (5.9 units per character) was tuned at the 480-unit design
+ * width, where the label column has slack. Once a chart lays itself out for
+ * a narrow screen the column is tight, and "Immune-evasion signature" came
+ * out 4px wider than the estimate and was clipped at the left edge. This
+ * measures with the page's own font, the one the SVG text inherits.
+ */
+let measureContext: CanvasRenderingContext2D | null | undefined;
+let measureFamily = '';
+function textWidth(text: string, fontSize: number): number {
+  if (measureContext === undefined) {
+    measureContext = typeof document === 'undefined' ? null : document.createElement('canvas').getContext('2d');
+    measureFamily = typeof document === 'undefined' ? 'sans-serif' : getComputedStyle(document.body).fontFamily;
+  }
+  if (!measureContext) return text.length * fontSize * 0.62;
+  measureContext.font = `${fontSize}px ${measureFamily}`;
+  return measureContext.measureText(text).width;
+}
+
+/** The longest prefix of `label` (plus an ellipsis) that fits in `maxWidth`. */
+function fitLabel(label: string, maxWidth: number, fontSize: number): string {
+  if (textWidth(label, fontSize) <= maxWidth) return label;
+  let low = 0;
+  let high = label.length - 1;
+  while (low < high) {
+    const mid = Math.ceil((low + high) / 2);
+    if (textWidth(`${label.slice(0, mid)}…`, fontSize) <= maxWidth) low = mid;
+    else high = mid - 1;
+  }
+  return `${label.slice(0, low).trimEnd()}…`;
+}
+
+/** The drawing width: the design width, or less when that is all there is. */
+function fitWidth(designWidth: number, available: number | null): number {
+  return available !== null && available > 0 ? Math.min(designWidth, available) : designWidth;
+}
+
+/*
+ * Drawn 1:1 when the measurement is right. max-width and height:auto keep the
+ * old scale-to-fit behaviour as the fallback rather than overflowing.
+ */
+const SVG_FIT: React.CSSProperties = { maxWidth: '100%', height: 'auto', display: 'block' };
 
 function Tooltip({ x, y, width, lines }: { x: number; y: number; width: number; lines: string[] }): React.ReactElement {
   const boxWidth = Math.max(...lines.map((line) => line.length)) * 6.1 + 18;
@@ -165,7 +245,7 @@ export interface BarDatum {
  */
 export function BarChart({
   data,
-  width = 480,
+  width: designWidth = 480,
   height,
   valueLabel,
   mode = 'sequential',
@@ -181,6 +261,8 @@ export function BarChart({
   emptyMessage?: string | undefined;
 }): React.ReactElement {
   const [hover, setHover] = useState<number | null>(null);
+  const [measureRef, available] = useAvailableWidth();
+  const width = fitWidth(designWidth, available);
   const rowHeight = 22;
   /*
    * The label column is sized to the labels, within limits.
@@ -194,9 +276,36 @@ export function BarChart({
    * matching it.
    */
   const longest = data.reduce((most, d) => Math.max(most, d.label.length), 0);
-  const labelWidth = Math.min(210, Math.max(110, longest * 5.9 + 14));
-  const margin: Margin = { top: 10, right: 20, bottom: 26, left: labelWidth };
-  const labelChars = Math.max(10, Math.floor((labelWidth - 12) / 5.9));
+  const naturalLabelWidth = Math.min(210, Math.max(110, longest * 5.9 + 14));
+  /*
+   * Room for the value printed at the end of each bar.
+   *
+   * The right margin was a fixed 20 units, so the label beside the longest bar
+   * ("+0.912") ran past the edge of the viewBox and was cut to "+0." on the
+   * Rescue drivers chart. A negative bar's label had the same problem on the
+   * other side, where it would have collided with the category names. Each
+   * side now reserves the width of its widest label, and only when a bar
+   * actually points that way.
+   */
+  const valueRoom = (sign: 1 | -1): number => {
+    const chars = data.reduce(
+      (most, d) => (Number.isFinite(d.value) && Math.sign(d.value) === sign ? Math.max(most, formatValue(d.value).length) : most),
+      0,
+    );
+    return chars === 0 ? 0 : Math.ceil(chars * 6.2 + 8);
+  };
+  /*
+   * On a narrow screen the label column gives way first, so the bars keep at
+   * least 120 units; names truncate with an ellipsis (full text in <title>).
+   * At the 480-unit design width this changes nothing.
+   */
+  const labelWidth = Math.max(72, Math.min(naturalLabelWidth, width - valueRoom(1) - valueRoom(-1) - 120));
+  const margin: Margin = {
+    top: 10,
+    right: Math.max(20, valueRoom(1)),
+    bottom: 26,
+    left: labelWidth + valueRoom(-1),
+  };
   const plotHeight = height ?? data.length * rowHeight + margin.top + margin.bottom;
 
   const extent = useMemo(() => {
@@ -225,7 +334,8 @@ export function BarChart({
   const zeroX = xOf(0);
 
   return (
-    <svg width="100%" style={{ maxWidth: width }} viewBox={`0 0 ${width} ${plotHeight}`} role="img" aria-label={`${valueLabel} by category`}>
+    <div ref={measureRef} className="w-full min-w-0">
+    <svg width={width} height={plotHeight} style={SVG_FIT} viewBox={`0 0 ${width} ${plotHeight}`} role="img" aria-label={`${valueLabel} by category`}>
       <line x1={zeroX} x2={zeroX} y1={margin.top} y2={plotHeight - margin.bottom} stroke="var(--axis)" strokeWidth={1} />
       {data.map((datum, index) => {
         const y = margin.top + index * rowHeight;
@@ -247,11 +357,11 @@ export function BarChart({
           >
             {/* A hit target taller than the bar, so hovering is not fiddly. */}
             <rect x={2} y={y} width={width - 4} height={rowHeight} fill="transparent" />
-            <text x={margin.left - 8} y={y + rowHeight / 2 + 3.5} fontSize={11} textAnchor="end" fill="var(--ink-secondary)">
+            <text x={labelWidth - 8} y={y + rowHeight / 2 + 3.5} fontSize={11} textAnchor="end" fill="var(--ink-secondary)">
               {/* The full name stays reachable on hover, and the table view
                   beside every chart carries it in text regardless. */}
               <title>{datum.label}</title>
-              {datum.label.length > labelChars ? `${datum.label.slice(0, labelChars - 1)}…` : datum.label}
+              {fitLabel(datum.label, labelWidth - 12, 11)}
             </text>
             <rect x={barX} y={y + 4} width={barWidth} height={rowHeight - 10} rx={3} fill={fill} opacity={hover === null || hover === index ? 1 : 0.55} />
             <text
@@ -280,6 +390,7 @@ export function BarChart({
         />
       ) : null}
     </svg>
+    </div>
   );
 }
 
@@ -300,7 +411,7 @@ export function DoseResponseChart({
   hill,
   testedRangeNm,
   markedConcentrationNm,
-  width = 440,
+  width: designWidth = 440,
   height = 240,
 }: {
   emax: number;
@@ -312,6 +423,10 @@ export function DoseResponseChart({
   height?: number;
 }): React.ReactElement {
   const [hoverX, setHoverX] = useState<number | null>(null);
+  // This one had no width cap at all, so in a wide panel it scaled *up* and
+  // its 10px axis text grew with it.
+  const [measureRef, available] = useAvailableWidth();
+  const width = fitWidth(designWidth, available);
   const margin = DEFAULT_MARGIN;
   const plotWidth = width - margin.left - margin.right;
   const plotHeight = height - margin.top - margin.bottom;
@@ -341,8 +456,11 @@ export function DoseResponseChart({
   for (let e = Math.ceil(logLow); e <= Math.floor(logHigh); e += 1) decades.push(Math.pow(10, e));
 
   return (
+    <div ref={measureRef} className="w-full min-w-0">
     <svg
-      width="100%"
+      width={width}
+      height={height}
+      style={SVG_FIT}
       viewBox={`0 0 ${width} ${height}`}
       role="img"
       aria-label="Dose-response curve"
@@ -412,6 +530,7 @@ export function DoseResponseChart({
         </>
       ) : null}
     </svg>
+    </div>
   );
 }
 
@@ -423,7 +542,7 @@ export function ScatterChart({
   points,
   xLabel,
   yLabel,
-  width = 420,
+  width: designWidth = 420,
   height = 320,
   identity = true,
 }: {
@@ -436,6 +555,8 @@ export function ScatterChart({
   identity?: boolean;
 }): React.ReactElement {
   const [hover, setHover] = useState<number | null>(null);
+  const [measureRef, available] = useAvailableWidth();
+  const width = fitWidth(designWidth, available);
   const margin = DEFAULT_MARGIN;
   const plotWidth = width - margin.left - margin.right;
   const plotHeight = height - margin.top - margin.bottom;
@@ -454,7 +575,8 @@ export function ScatterChart({
   const ticks = [extent.min, extent.min / 2, 0, extent.max / 2, extent.max];
 
   return (
-    <svg width="100%" style={{ maxWidth: width }} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${yLabel} against ${xLabel}`}>
+    <div ref={measureRef} className="w-full min-w-0">
+    <svg width={width} height={height} style={SVG_FIT} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${yLabel} against ${xLabel}`}>
       <Axes
         width={width}
         height={height}
@@ -502,6 +624,7 @@ export function ScatterChart({
         />
       ) : null}
     </svg>
+    </div>
   );
 }
 
@@ -517,14 +640,11 @@ export function ScatterChart({
  * not. Cells carry a 2px surface gap so adjacent values do not blend, and the
  * value is printed in every cell when the matrix is small enough to read.
  *
- * Every chart in this file is `width="100%"` over a fixed viewBox, which is
- * right for a bar chart — it stretches horizontally and the bars simply get
- * longer. It is wrong for a square matrix: eight candidates by five components
- * is about 320 units wide, and in a 1300-pixel panel the whole drawing scaled
- * by four. Forty-four-pixel cells became a hundred and eighty, and the rotated
- * column labels rendered at roughly 45px, so a compact matrix filled the screen
- * and looked broken. The cap keeps a chart at the size it was designed at and
- * lets it shrink below that, which is the behaviour every one of them wants.
+ * Never scaled up: eight candidates by five components is about 320 units
+ * wide, and stretched across a 1300-pixel panel its 44px cells became 180px
+ * with 45px labels. Never scaled down either (see `useAvailableWidth`): in a
+ * narrow panel the cells shrink instead, and below the smallest cell the
+ * matrix scrolls sideways.
  */
 export function MatrixChart({
   labels,
@@ -544,6 +664,7 @@ export function MatrixChart({
   columnLabels?: string[] | undefined;
 }): React.ReactElement {
   const [hover, setHover] = useState<{ row: number; col: number } | null>(null);
+  const [measureRef, available] = useAvailableWidth();
   const columns = columnLabels ?? labels;
   /*
    * The two label gutters are sized to their labels, as the ranked bar chart's
@@ -566,7 +687,6 @@ export function MatrixChart({
    */
   const perCharacter = 6.8;
   const labelWidth = Math.min(180, Math.max(70, longestRow * perCharacter + 16));
-  const rowChars = Math.max(8, Math.floor((labelWidth - 14) / perCharacter));
 
   /*
    * A label set at -40° spends its length in two directions at once, and the
@@ -583,8 +703,17 @@ export function MatrixChart({
   const columnChars = Math.min(20, Math.max(8, longestColumn));
   const headerHeight = Math.max(46, columnChars * perCharacter * 0.64 + 18);
   const overhang = Math.ceil(columnChars * perCharacter * 0.77);
-  const width = labelWidth + columns.length * cellSize + 8 + overhang;
-  const height = headerHeight + labels.length * cellSize + 8;
+  /*
+   * Cells shrink to fit a narrow panel, down to 22 units, before the matrix
+   * scrolls sideways inside its card. The text stays at its size either way;
+   * cell values are printed only while cells can hold them, and the tooltip
+   * carries them always.
+   */
+  const fittedCell =
+    available !== null && available > 0 ? Math.floor((available - labelWidth - 8 - overhang) / columns.length) : cellSize;
+  const cell = Math.max(22, Math.min(cellSize, fittedCell));
+  const width = labelWidth + columns.length * cell + 8 + overhang;
+  const height = headerHeight + labels.length * cell + 8;
 
   const bound = useMemo(() => {
     const finite = values.filter(Number.isFinite);
@@ -595,19 +724,20 @@ export function MatrixChart({
     return finite.length > 0 ? Math.max(...finite) || 1 : 1;
   }, [values]);
 
-  const showValues = cellSize >= 36;
+  const showValues = cell >= 36;
 
   return (
-    <svg width="100%" style={{ maxWidth: width }} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={title}>
+    <div ref={measureRef} className="w-full min-w-0 overflow-x-auto">
+    <svg width={width} height={height} style={{ display: 'block' }} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={title}>
       {columns.map((label, col) => (
         <text
           key={`c${label}`}
-          x={labelWidth + col * cellSize + cellSize / 2}
+          x={labelWidth + col * cell + cell / 2}
           y={headerHeight - 8}
           fontSize={10.5}
           textAnchor="start"
           fill="var(--ink-secondary)"
-          transform={`rotate(-40 ${labelWidth + col * cellSize + cellSize / 2} ${headerHeight - 8})`}
+          transform={`rotate(-40 ${labelWidth + col * cell + cell / 2} ${headerHeight - 8})`}
         >
           <title>{label}</title>
           {label.length > columnChars ? `${label.slice(0, columnChars - 1)}…` : label}
@@ -615,9 +745,9 @@ export function MatrixChart({
       ))}
       {labels.map((rowLabel, row) => (
         <g key={`r${rowLabel}`}>
-          <text x={labelWidth - 8} y={headerHeight + row * cellSize + cellSize / 2 + 4} fontSize={10.5} textAnchor="end" fill="var(--ink-secondary)">
+          <text x={labelWidth - 8} y={headerHeight + row * cell + cell / 2 + 4} fontSize={10.5} textAnchor="end" fill="var(--ink-secondary)">
             <title>{rowLabel}</title>
-            {rowLabel.length > rowChars ? `${rowLabel.slice(0, rowChars - 1)}…` : rowLabel}
+            {fitLabel(rowLabel, labelWidth - 12, 10.5)}
           </text>
           {columns.map((columnLabel, col) => {
             const value = values[row * columns.length + col] as number;
@@ -630,10 +760,10 @@ export function MatrixChart({
             return (
               <g key={`${rowLabel}-${columnLabel}`} onPointerEnter={() => setHover({ row, col })} onPointerLeave={() => setHover(null)}>
                 <rect
-                  x={labelWidth + col * cellSize + 1}
-                  y={headerHeight + row * cellSize + 1}
-                  width={cellSize - 2}
-                  height={cellSize - 2}
+                  x={labelWidth + col * cell + 1}
+                  y={headerHeight + row * cell + 1}
+                  width={cell - 2}
+                  height={cell - 2}
                   rx={2}
                   fill={fill}
                   stroke={isHover ? 'var(--ink)' : 'transparent'}
@@ -641,8 +771,8 @@ export function MatrixChart({
                 />
                 {showValues && Number.isFinite(value) ? (
                   <text
-                    x={labelWidth + col * cellSize + cellSize / 2}
-                    y={headerHeight + row * cellSize + cellSize / 2 + 3.5}
+                    x={labelWidth + col * cell + cell / 2}
+                    y={headerHeight + row * cell + cell / 2 + 3.5}
                     fontSize={9.5}
                     textAnchor="middle"
                     fill="var(--ink)"
@@ -659,8 +789,8 @@ export function MatrixChart({
       ))}
       {hover ? (
         <Tooltip
-          x={labelWidth + hover.col * cellSize + cellSize}
-          y={headerHeight + hover.row * cellSize + cellSize / 2}
+          x={labelWidth + hover.col * cell + cell}
+          y={headerHeight + hover.row * cell + cell / 2}
           width={width}
           lines={[
             `${labels[hover.row]} × ${columns[hover.col]}`,
@@ -669,6 +799,7 @@ export function MatrixChart({
         />
       ) : null}
     </svg>
+    </div>
   );
 }
 
@@ -692,6 +823,14 @@ export function ColourLegend({
   note?: string | null | undefined;
 }): React.ReactElement {
   const gradientId = useId();
+  /*
+   * Drawn at its measured width. It used to stretch a 220-unit viewBox with
+   * preserveAspectRatio="none", which widened the tick numbers along with the
+   * bar: three times wider once the layer panel sat under the map at full
+   * width.
+   */
+  const [measureRef, available] = useAvailableWidth();
+  const barWidth = fitWidth(420, available ?? 220);
 
   if (kind === 'categorical' && categories) {
     return (
@@ -716,7 +855,8 @@ export function ColourLegend({
   const stops = Array.from({ length: 11 }, (_, i) => i / 10);
   return (
     <div className="space-y-1.5">
-      <svg width="100%" height={30} viewBox="0 0 220 30" preserveAspectRatio="none" role="img" aria-label={`Colour scale in ${unit}`}>
+      <div ref={measureRef} className="w-full min-w-0">
+      <svg width={barWidth} height={30} style={{ display: 'block', maxWidth: '100%' }} viewBox={`0 0 ${barWidth} 30`} role="img" aria-label={`Colour scale in ${unit}`}>
         <defs>
           <linearGradient id={gradientId} x1="0" x2="1">
             {stops.map((stop) => (
@@ -728,13 +868,13 @@ export function ColourLegend({
             ))}
           </linearGradient>
         </defs>
-        <rect x={0} y={0} width={220} height={9} rx={2} fill={`url(#${gradientId})`} />
+        <rect x={0} y={0} width={barWidth} height={9} rx={2} fill={`url(#${gradientId})`} />
         {ticks.map((tick, index) => {
-          const position = ((tick - domain[0]) / (domain[1] - domain[0] || 1)) * 220;
+          const position = ((tick - domain[0]) / (domain[1] - domain[0] || 1)) * barWidth;
           return (
             <text
               key={`${tick}-${index}`}
-              x={Math.min(216, Math.max(4, position))}
+              x={Math.min(barWidth - 4, Math.max(4, position))}
               y={22}
               fontSize={9.5}
               textAnchor={index === 0 ? 'start' : index === ticks.length - 1 ? 'end' : 'middle'}
@@ -746,6 +886,7 @@ export function ColourLegend({
           );
         })}
       </svg>
+      </div>
       <p className="text-[10.5px]" style={{ color: 'var(--ink-muted)' }}>
         {unit}
         {note ? ` — ${note}` : ''}

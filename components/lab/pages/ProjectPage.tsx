@@ -20,6 +20,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api, ApiError, type CaseSummary, type ProjectSummary } from '../../../lib/api';
 import type { LabMode } from '../../../types';
+import { MODE_LABEL } from '../../../lib/governance/modeLabels';
 import { Button, Caveat, Section, StatTile } from '../../ui/Badges';
 import { Icon } from '../../ui/Icon';
 import { Search } from 'lucide-react';
@@ -60,21 +61,30 @@ const WORKFLOW = [
  */
 type StatusBucket = 'setup' | 'running' | 'predicted' | 'complete' | 'attention';
 
-const RUNNING_STATES = new Set(['QUEUED', 'RUNNING', 'RESCUE_RUNNING']);
-const PREDICTED_STATES = new Set(['PREDICTED', 'RESCUE_READY']);
+/** States with prediction (and possibly rescue) results to read. */
+const RESULT_STATES = new Set(['PREDICTED', 'RESCUE_READY', 'RESCUE_RUNNING']);
 
 function statusBucket(project: ProjectSummary): StatusBucket {
   if (project.failedStages.length > 0) return 'attention';
+  /*
+   * "Running" means a job is in flight, read from the runs themselves, the
+   * same test the workspace header uses. The derived state cannot say it:
+   * nothing derives QUEUED or RUNNING, and RESCUE_RUNNING is the state
+   * *after* the rescue simulations finish. Reading that name as "in
+   * progress" put every project with a finished rescue under Running, with a
+   * pulsing dot.
+   */
+  if (project.runs.some((run) => run.status === 'queued' || run.status === 'running')) return 'running';
   if (project.state === 'COMPLETE') return 'complete';
-  if (RUNNING_STATES.has(project.state)) return 'running';
-  if (PREDICTED_STATES.has(project.state)) return 'predicted';
+  if (RESULT_STATES.has(project.state)) return 'predicted';
   return 'setup';
 }
 
 const BUCKET_LABEL: Record<StatusBucket, string> = {
   setup: 'Setting up',
   running: 'Running',
-  predicted: 'Predicted',
+  // Covers a finished rescue too, so not just "Predicted".
+  predicted: 'Results ready',
   complete: 'Complete',
   attention: 'Needs attention',
 };
@@ -82,7 +92,7 @@ const BUCKET_LABEL: Record<StatusBucket, string> = {
 /**
  * The colour each bucket uses, reusing tokens that already carry this exact
  * meaning elsewhere in the lab rather than inventing a parallel palette.
- * "Predicted" takes the §1.5 result-label colour a predicted layer uses on
+ * "Results ready" takes the §1.5 result-label colour a predicted layer uses on
  * every chart; "Attention" and "Complete" take the status tokens the QC
  * verdict badge uses; "Running" takes the accent; "Setting up" stays neutral
  * ink, because nothing has gone right or wrong yet.
@@ -93,8 +103,10 @@ const BUCKET_COLOUR: Record<StatusBucket, string> = {
   // `--series-1-text` is the step already taken for exactly this elsewhere.
   running: 'var(--series-1-text)',
   predicted: 'var(--label-predicted)',
-  complete: 'var(--status-good)',
-  attention: 'var(--status-critical)',
+  // The -text steps, because these colour the chip's word as well as its
+  // outline; the plain status values fall below 4.5:1 as text in dark mode.
+  complete: 'var(--status-good-text)',
+  attention: 'var(--status-critical-text)',
 };
 
 function StatusChip({ bucket }: { bucket: StatusBucket }): React.ReactElement {
@@ -333,12 +345,15 @@ export default function ProjectPage({
               <div className="mt-1.5 space-y-1.5">
                 {(context.meta?.modes ?? []).map((entry) => {
                   const allowed = context.user?.availableModes.includes(entry.id) ?? false;
+                  // The server's reason, so the rule is stated once: Intermediate
+                  // opens after a first completed experiment, Advanced by role or tier.
+                  const lock = allowed ? null : (context.user?.lockedModes?.[entry.id] ?? null);
                   return (
                     <label
                       key={entry.id}
                       className="flex items-start gap-2 text-[12px]"
                       style={{ color: allowed ? 'var(--ink-secondary)' : 'var(--ink-muted)' }}
-                      title={allowed ? undefined : 'Advanced is a paid tier. Reviewers and administrators are exempt.'}
+                      title={lock ?? undefined}
                     >
                       <input
                         type="radio"
@@ -348,7 +363,14 @@ export default function ProjectPage({
                         disabled={!allowed}
                         onChange={() => setMode(entry.id)}
                       />
-                      <span>{entry.summary}</span>
+                      <span>
+                        {entry.summary}
+                        {lock ? (
+                          <span className="mt-0.5 block text-[11px]" style={{ color: 'var(--ink-muted)' }}>
+                            {lock}
+                          </span>
+                        ) : null}
+                      </span>
                     </label>
                   );
                 })}
@@ -477,7 +499,7 @@ export default function ProjectPage({
                             {entry.title}
                           </span>
                           <span className="t-caption mt-1 block" style={{ color: 'var(--ink-muted)' }}>
-                            {entry.mode} mode · updated {timestamp(entry.updatedAt)}
+                            {MODE_LABEL[entry.mode]} · updated {timestamp(entry.updatedAt)}
                           </span>
                         </div>
                         <StatusChip bucket={bucket} />
@@ -492,7 +514,7 @@ export default function ProjectPage({
       ) : null}
 
       <Section title="The frozen V1 workflow" subtitle="§2 — the scientific sequence is fixed and this lab follows it in order.">
-        <ol className="grid gap-x-6 gap-y-1 text-[11.5px] sm:grid-cols-2 lg:grid-cols-4" style={{ color: 'var(--ink-secondary)' }}>
+        <ol className="grid gap-x-6 gap-y-1 text-[11.5px] sm:grid-cols-2 xl:grid-cols-4" style={{ color: 'var(--ink-secondary)' }}>
           {WORKFLOW.map((step, index) => (
             <li key={step} className="flex gap-2">
               <span className="tnum w-5 shrink-0 text-right" style={{ color: 'var(--ink-muted)' }}>

@@ -16,7 +16,8 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 // Registers the `cookies` property on FastifyRequest.
 import '@fastify/cookie';
 import { config } from '../config';
-import { can, readSessionToken, type Capability, type Identity, type Session } from '../auth';
+import { can, readSessionToken, type Capability, type Identity, type ModeProgress, type Session } from '../auth';
+import type { Store } from '../store';
 import type { ScientificErrorCode } from '@engine/pipeline';
 import { ERROR_IS_RECOVERABLE, ERROR_SUGGESTION } from '@engine/pipeline';
 
@@ -179,4 +180,14 @@ export function queryBoolean(value: unknown, fallback = false): boolean {
   if (lower === 'true' || lower === '1' || lower === 'yes') return true;
   if (lower === 'false' || lower === '0' || lower === 'no') return false;
   return fallback;
+}
+
+/**
+ * What this user has done that can open a mode, read from their runs.
+ *
+ * One function, so the session payload, project creation and the mode switch
+ * cannot disagree about whether Intermediate is open.
+ */
+export function modeProgress(store: Store, userId: string): ModeProgress {
+  return { completedExperiment: store.hasCompletedRun(userId, 'prediction') };
 }

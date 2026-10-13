@@ -14,7 +14,7 @@
 
 import { useMemo, useState } from 'react';
 import type { RunDataState } from '../useRunData';
-import { useLayer } from '../useRunData';
+import { runObservations, useLayer } from '../useRunData';
 import { Caveat, ConfidenceBadge, DataTable, ResultBadge, Section, StatTile } from '../../ui/Badges';
 import { EmptyState } from '../../ui/EmptyState';
 import TissueView, { type LayerChoice } from '../TissueView';
@@ -25,12 +25,14 @@ import type { WorkspaceContext } from '../Workspace';
 export default function PropagationPage({
   context,
   prediction,
+  analysis,
 }: {
   context: WorkspaceContext;
   prediction: RunDataState;
+  analysis: RunDataState;
 }): React.ReactElement {
   const results = prediction.results?.prediction;
-  const observations = prediction.results?.observations;
+  const observations = runObservations(prediction, analysis);
   const [stage, setStage] = useState(1);
   const [layerChoice, setLayerChoice] = useState<LayerChoice | null>(null);
 
@@ -100,7 +102,7 @@ export default function PropagationPage({
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatTile
           label="Direct response"
           value={results.direct.quantitative ? 'Quantitative' : 'Exploratory'}

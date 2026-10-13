@@ -122,7 +122,7 @@ export default function RegistryPage(): React.ReactElement {
               header: 'Source',
               render: (record) =>
                 record.source ?? (
-                  <span style={{ color: record.confidence === 'exploratory' ? 'var(--status-serious)' : 'var(--ink-muted)' }}>
+                  <span style={{ color: record.confidence === 'exploratory' ? 'var(--status-serious-text)' : 'var(--ink-muted)' }}>
                     none — {record.confidence}
                   </span>
                 ),

@@ -50,6 +50,26 @@ export function useRunResults(runId: string | null): RunDataState {
   return { results, loading, error, reload: useCallback(() => setNonce((n) => n + 1), []) };
 }
 
+/**
+ * The cell coordinates a run's maps are drawn on.
+ *
+ * Only the analysis job writes an `observations` artefact, so the results of a
+ * prediction or rescue run carry `observations: null`. The Predicted,
+ * Propagation and Rescue maps read their own run's results, so they had no
+ * coordinates and never drew.
+ *
+ * Those runs are built on the newest analysis (the runner takes that run's
+ * handoff), and their per-cell layers follow the dataset's cell order.
+ * Analysis keeps that order and only removes cells that fail QC. So the
+ * analysis coordinates match a prediction layer exactly when no cell was
+ * removed, which is when the counts are equal. `TissueView` checks those
+ * counts and declines to draw if they differ; this function only chooses the
+ * source.
+ */
+export function runObservations(run: RunDataState, analysis: RunDataState): RunResults['observations'] {
+  return run.results?.observations ?? analysis.results?.observations ?? null;
+}
+
 export interface LayerState {
   layer: Layer | null;
   loading: boolean;

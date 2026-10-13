@@ -19,9 +19,10 @@ const STATUS_LABEL: Record<RegisterStatus, string> = {
 };
 
 const STATUS_COLOUR: Record<RegisterStatus, string> = {
-  implemented: 'var(--status-good)',
-  partial: 'var(--status-warning)',
-  absent: 'var(--status-serious)',
+  // -text steps: these colour each entry's status word as well as its outline.
+  implemented: 'var(--status-good-text)',
+  partial: 'var(--status-warning-text)',
+  absent: 'var(--status-serious-text)',
   guardrail: 'var(--ink-muted)',
 };
 

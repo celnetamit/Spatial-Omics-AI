@@ -14,6 +14,7 @@
  */
 
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import { ArrowLeft } from 'lucide-react';
 import { api, ApiError, type LabMeta, type ProjectSummary, type SessionUser } from './lib/api';
 import { appConfig } from './lib/config';
 import { logger } from './lib/logger';
@@ -105,13 +106,19 @@ export default function App(): React.ReactElement {
     selectProject(next?.projectId ?? null);
   }, [selectProject]);
 
-  const goHome = useCallback((target?: string) => {
-    navigate('project');
-    if (!target) return;
-    window.setTimeout(() => {
-      document.getElementById(target)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 80);
-  }, [navigate]);
+  /*
+   * Re-reads the signed-in user. Which modes are open can change during a
+   * session: Intermediate opens once the learner's first prediction completes,
+   * and Workspace calls this when one does.
+   */
+  const refreshUser = useCallback(async () => {
+    try {
+      const { user: fresh } = await api.session();
+      if (fresh) setUser(fresh);
+    } catch (error) {
+      logger.warn('Could not refresh the session user', { error: String(error) });
+    }
+  }, []);
 
   useEffect(() => {
     setNavOpen(false);
@@ -272,9 +279,26 @@ export default function App(): React.ReactElement {
           * keyboard or screen-reader user traverses eighteen controls before
           * reaching the page they asked for, every single time.
           */}
+        {/*
+          * Two fixes, both found by keyboard testing:
+          *
+          * - The link moves focus itself rather than following its href. The
+          *   router reads the URL fragment as the route, so following
+          *   "#main" replaced "#/baseline?p=…" with "#main", which routes to
+          *   the Project page and drops the open project.
+          * - z-[60], not z-50. The sticky masthead is also z-50 and comes
+          *   later in the document, so it painted over the focused link and
+          *   hid it completely.
+          */}
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded focus:px-3 focus:py-2 focus:text-[12px] focus:font-medium"
+          onClick={(event) => {
+            event.preventDefault();
+            const target = document.getElementById('main');
+            target?.focus();
+            target?.scrollIntoView({ block: 'start' });
+          }}
+          className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[60] focus:rounded focus:px-3 focus:py-2 focus:text-[12px] focus:font-medium"
           style={{ background: 'var(--action)', color: '#fff' }}
         >
           Skip to content
@@ -291,57 +315,45 @@ export default function App(): React.ReactElement {
           />
         ) : null}
 
-        <header className="research-masthead shrink-0">
-          <div className="research-ribbon">
-            <span>Spatial biology intelligence platform</span>
-            <span>Research and education use · v{meta?.version ?? appConfig.version}</span>
-          </div>
-          <div className="research-main">
-            <div className="flex min-w-0 items-center gap-3">
-              <span className="brand-mark flex h-11 w-11 shrink-0 items-center justify-center">
-                <Icon name="propagation" size={22} />
+        {/*
+          * The masthead: the lab's name, and the way back to its page on the
+          * portal. The black ribbon above it (a tagline and the version) and
+          * the "Overview" / "Start project" links were removed at the
+          * product owner's request; both links led to sections of the Project
+          * page, which the sidebar already reaches.
+          */}
+        <header className="research-masthead lab-masthead shrink-0">
+          <div className="lab-masthead__inner">
+            {/*
+              * `p`, not `h1`. Each screen's own title in the content header
+              * (Workspace.tsx) is the page's heading; this is branding shown on
+              * every screen, and a second `<h1>` would give every page two.
+              */}
+            <div className="lab-brand">
+              <span className="lab-brand__mark" aria-hidden="true">
+                <Icon name="propagation" size={20} />
               </span>
-              {/*
-                * `p`, not `h1`. The per-page title in the content header below
-                * (Workspace.tsx) is the page's real heading — "Data & QC",
-                * "Baseline tissue" — and is what a screen reader's heading
-                * navigation should land on first. This is sitewide branding,
-                * present on every screen, and a second `<h1>` here gave every
-                * page two level-one headings with no way to tell which one
-                * was "the" title.
-                */}
               <div className="min-w-0">
-                <p className="truncate text-[1.18rem] font-semibold leading-tight sm:text-[1.42rem]" style={{ color: 'var(--ink)' }}>
-                  Spatial Omics AI
-                </p>
-                <p className="t-caption" style={{ color: 'var(--ink-muted)' }}>
-                  Virtual LiveLab
-                </p>
+                <p className="lab-brand__name">Spatial Omics</p>
+                <p className="lab-brand__tagline">Virtual LiveLab</p>
               </div>
             </div>
-            {/*
-              * Two links, not four. "Methods" and "Repurposing" used to scroll
-              * to sections of this same page ("methods-overview",
-              * "repurposing-overview") that no longer exist — the first was a
-              * duplicate of the dedicated Methods & model card screen, the
-              * second named a different lab entirely and pointed nowhere once
-              * its anchor was removed, so the button silently did nothing. The
-              * real Methods page already has its own sidebar entry, which is
-              * where a reader goes to find it now.
-              */}
-            <nav className="research-links" aria-label="Primary">
-              <button type="button" onClick={() => goHome('research-boundary')}>Overview</button>
-              <button type="button" onClick={() => goHome('project-form')}>Start project</button>
-            </nav>
-            <button
-              type="button"
-              onClick={() => setNavOpen(true)}
-              aria-expanded={navOpen}
-              aria-controls="workflow-nav"
-              className="masthead-menu"
-            >
-              Contents
-            </button>
+            <div className="lab-masthead__actions">
+              <a className="lab-back-link" href={meta?.portal.labUrl ?? appConfig.portal.labUrl} aria-label="Back to homepage">
+                <ArrowLeft size={14} strokeWidth={2.2} aria-hidden="true" />
+                <span className="hidden sm:inline">Back to homepage</span>
+                <span className="lab-back-link__short sm:hidden">Home</span>
+              </a>
+              <button
+                type="button"
+                onClick={() => setNavOpen(true)}
+                aria-expanded={navOpen}
+                aria-controls="workflow-nav"
+                className="masthead-menu"
+              >
+                Contents
+              </button>
+            </div>
           </div>
         </header>
 
@@ -466,9 +478,22 @@ export default function App(): React.ReactElement {
                   * are compared byte-for-byte across labs, so the heading is
                   * added around them, not in them.
                   */}
-                <h1 className="t-title mb-5" style={{ color: 'var(--ink)' }}>
-                  {PAGE_TITLES[page]}
-                </h1>
+                {/*
+                  * Except on the agreement page. The agreement document
+                  * carries its own <h1> (its full title), and it is one of the
+                  * byte-compared components, so its heading cannot move. A
+                  * second <h1> here gave that page two top-level headings; this
+                  * keeps the same look as a paragraph instead.
+                  */}
+                {page === 'agreement' ? (
+                  <p className="t-title mb-5" style={{ color: 'var(--ink)' }}>
+                    {PAGE_TITLES[page]}
+                  </p>
+                ) : (
+                  <h1 className="t-title mb-5" style={{ color: 'var(--ink)' }}>
+                    {PAGE_TITLES[page]}
+                  </h1>
+                )}
                 {page === 'feedback' ? <Feedback labTitle="Spatial Omics AI Virtual LiveLab" /> : null}
                 {page === 'implementation' ? <ImplementationRegister /> : null}
                 {page === 'agreement' && user ? (
@@ -493,6 +518,7 @@ export default function App(): React.ReactElement {
                 onProjectChange={onProjectChange}
                 restoring={restoring}
                 onRegisterCommands={setRunCommands}
+                onUserRefresh={refreshUser}
               />
             )}
           </Suspense>

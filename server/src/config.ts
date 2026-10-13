@@ -70,6 +70,8 @@ export const config = Object.freeze({
     verifyUrl: str(env.LAB_AUTH_VERIFY_URL, 'https://live-labs.org/api/auth/authorize-lab'),
     loginUrl: str(env.LAB_LOGIN_URL, 'https://live-labs.org/login'),
     homeUrl: str(env.LAB_HOME_URL, 'https://live-labs.org/labs'),
+    /** This lab's own page on the portal. Empty means "derive it" (see /api/v1/meta). */
+    labPageUrl: str(env.LAB_PAGE_URL, ''),
     labSlug: str(env.LAB_SLUG, 'spatial-ai'),
     verifyTimeoutMs: int(env.LAB_AUTH_TIMEOUT_MS, 15_000, 1_000, 60_000),
     /** Development only; ignored in production so a mis-set variable is inert. */

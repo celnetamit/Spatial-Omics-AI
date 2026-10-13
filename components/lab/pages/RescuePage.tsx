@@ -12,7 +12,7 @@
 
 import { useState } from 'react';
 import type { RunDataState } from '../useRunData';
-import { useLayer } from '../useRunData';
+import { runObservations, useLayer } from '../useRunData';
 import { Button, Caveat, DataTable, ResultBadge, Section, StatTile } from '../../ui/Badges';
 import TissueView, { type LayerChoice } from '../TissueView';
 import { BarChart } from '../../viz/Charts';
@@ -31,13 +31,32 @@ const REQUIREMENT_LABEL: Record<string, string> = {
 export default function RescuePage({
   context,
   rescue,
+  analysis,
 }: {
   context: WorkspaceContext;
   rescue: RunDataState;
+  analysis: RunDataState;
 }): React.ReactElement {
   const results = rescue.results?.rescue;
-  const observations = rescue.results?.observations;
+  const observations = runObservations(rescue, analysis);
   const [layerChoice, setLayerChoice] = useState<LayerChoice | null>(null);
+
+  /*
+   * The layer hook has to run before the early returns below. It used to be
+   * called after them, so a direct link to this page rendered once without
+   * results (fewer hooks), then re-rendered with them (one more hook), and
+   * React threw error #310. The error boundary replaced the whole page.
+   */
+  const complete = results ? results.simulated.filter((entry) => entry.status === 'complete') : [];
+  const choices: LayerChoice[] = complete.map((entry) => ({
+    id: `rescue:${entry.candidateId}`,
+    label: entry.name,
+    kind: 'rescue',
+    key: entry.candidateId,
+    group: 'Candidate rescue',
+  }));
+  const active = layerChoice ?? choices[0] ?? null;
+  const layer = useLayer(context.rescueRunId, active?.kind ?? null, active?.key ?? '');
 
   if (!context.predictionRunId) {
     return <Caveat>Run a prediction first — rescue candidates are retrieved from the altered tissue state it produces.</Caveat>;
@@ -60,22 +79,11 @@ export default function RescuePage({
   }
 
   const points = observations ? observations.x.map((x, i) => ({ x, y: observations.y[i] as number })) : [];
-  const complete = results.simulated.filter((entry) => entry.status === 'complete');
   const failed = results.simulated.filter((entry) => entry.status !== 'complete');
-
-  const choices: LayerChoice[] = complete.map((entry) => ({
-    id: `rescue:${entry.candidateId}`,
-    label: entry.name,
-    kind: 'rescue',
-    key: entry.candidateId,
-    group: 'Candidate rescue',
-  }));
-  const active = layerChoice ?? choices[0] ?? null;
-  const layer = useLayer(context.rescueRunId, active?.kind ?? null, active?.key ?? '');
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatTile label="Eligible" value={integer(results.eligible.length)} detail="Listed alphabetically — no ordering before simulation." />
         <StatTile label="Simulated" value={integer(complete.length)} detail="Each against the identical altered state." />
         <StatTile label="Excluded" value={integer(results.excluded.length)} detail="Each with the rule that failed." />
@@ -160,7 +168,7 @@ export default function RescuePage({
               render: (r) => (
                 <ul className="space-y-0.5">
                   {r.eligibility.failed.map((requirement) => (
-                    <li key={requirement} style={{ color: 'var(--status-serious)' }}>
+                    <li key={requirement} style={{ color: 'var(--status-serious-text)' }}>
                       {REQUIREMENT_LABEL[requirement] ?? requirement}
                     </li>
                   ))}

@@ -10,7 +10,7 @@ import type { FastifyInstance } from 'fastify';
 import { config } from '../config';
 import { ingestTabular, unsupportedFormatGuidance, type SourceFile } from '@engine/data/ingest';
 import { metadataFromUpload, publicUploadedSummary, writeUploadedDataset } from '../uploadedDatasets';
-import { canOpenMode } from '../auth';
+import { modeLock } from '../auth';
 import { deriveState, stageIsRunnable, STAGE_TITLE, type StageId } from '@engine/pipeline';
 import {
   assessEligibility, createDefinition, resolveSelection, toNanomolar,
@@ -19,7 +19,7 @@ import { OPERATOR_LABEL, OPERATOR_SEMANTICS, type DrugPerturbation, type Molecul
 import type { LabMode, Store } from '../store';
 import type { Services } from './index';
 import {
-  fail, queryString, requireCapability, requireOwnership, requireSession, type Sessions,
+  fail, modeProgress, queryString, requireCapability, requireOwnership, requireSession, type Sessions,
 } from './shared';
 import { submitRun } from '../jobs/runner';
 
@@ -54,12 +54,13 @@ export async function registerProjectRoutes(
     if (!title) fieldErrors.push({ field: 'title', message: 'A project title is required.' });
 
     const mode: LabMode = body.mode === 'moderate' || body.mode === 'expert' ? body.mode : 'basic';
-    if (!canOpenMode(session.identity, mode)) {
+    const lock = modeLock(session.identity, mode, modeProgress(store, session.identity.userId));
+    if (lock) {
       return fail(
         reply,
         403,
         'TIER_REQUIRED',
-        `Advanced mode is not available on this account's tier (${session.identity.tier}).`,
+        lock,
         {
           suggestedAction:
             'Beginner and Intermediate produce the same numbers for the same scientific configuration — only the controls, ' +
@@ -289,9 +290,8 @@ export async function registerProjectRoutes(
       if (mode !== 'basic' && mode !== 'moderate' && mode !== 'expert') {
         return fail(reply, 400, 'INVALID_INPUT', 'Mode must be basic, moderate or expert.');
       }
-      if (!canOpenMode(session.identity, mode)) {
-        return fail(reply, 403, 'TIER_REQUIRED', `Advanced mode is not available on this account's tier.`);
-      }
+      const lock = modeLock(session.identity, mode, modeProgress(store, session.identity.userId));
+      if (lock) return fail(reply, 403, 'TIER_REQUIRED', lock);
       const updated = store.updateProject(project.projectId, { mode });
       return reply.send({ project: projectView(updated ?? project, store) });
     },
@@ -416,6 +416,18 @@ export async function registerProjectRoutes(
       if (!requireOwnership(reply, session.identity, project.ownerId, 'project')) return reply;
       if (!requireCapability(reply, session.identity, 'run-prediction')) return reply;
 
+      /*
+       * Selections are resolved against a bundled case's cell types and
+       * regions, so an uploaded dataset cannot be perturbed at present. It
+       * used to fall through to "This project has no dataset selected", which
+       * is false: the project has a dataset, and its baseline may already be
+       * complete. Say what is actually the case.
+       */
+      if (project.datasetKind === 'upload') {
+        return fail(reply, 400, 'INVALID_INPUT', 'Perturbations can only be defined on the bundled cases at present. An uploaded dataset supports the baseline analysis.', {
+          suggestedAction: 'To run a perturbation, start a project on one of the bundled cases.',
+        });
+      }
       const loadedCase = project.datasetId ? catalogue.cases.get(project.datasetId) : undefined;
       if (!loadedCase) {
         return fail(reply, 400, 'INVALID_INPUT', 'This project has no dataset selected.');
@@ -449,6 +461,9 @@ export async function registerProjectRoutes(
       if (selection.resolvedIndices.length === 0) {
         return fail(reply, 400, 'INVALID_INPUT', 'The selection resolved to no cells.', {
           fieldErrors: [{ field: 'selection', message: selection.description }],
+          // The INVALID_INPUT default talks about re-uploading a file, which is
+          // not what went wrong here.
+          suggestedAction: 'Choose at least one cell type or region to perturb, or target the whole tissue.',
         });
       }
 

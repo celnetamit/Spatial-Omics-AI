@@ -273,6 +273,43 @@ export class Store {
     return updated;
   }
 
+  /**
+   * Fails the runs a previous process left in flight. Returns how many.
+   *
+   * The job queue lives in memory and its workers are threads of this
+   * process, so nothing queued or running survives a restart: a deploy, a
+   * crash, a rescheduled container. The log still says "running", though,
+   * and replaying it verbatim left those runs at their last progress for
+   * good. Every page header kept reading "analysis running 85%", even after a
+   * newer run of the same kind had finished. Called once at startup, before
+   * the queue accepts work, so no live run can be caught by it.
+   */
+  failInterruptedRuns(): number {
+    let count = 0;
+    for (const run of [...this.runs.values()]) {
+      if (run.status !== 'queued' && run.status !== 'running') continue;
+      this.updateRun(run.runId, {
+        status: 'failed',
+        finishedAt: new Date().toISOString(),
+        error: {
+          code: 'INTERRUPTED',
+          message: 'The lab restarted while this run was in progress, so it did not finish. Run it again.',
+          recoverable: true,
+        },
+      });
+      count += 1;
+    }
+    return count;
+  }
+
+  /** Whether this owner has a run of this kind that finished successfully. */
+  hasCompletedRun(ownerId: string, kind: RunRecord['kind']): boolean {
+    for (const run of this.runs.values()) {
+      if (run.ownerId === ownerId && run.kind === kind && run.status === 'complete') return true;
+    }
+    return false;
+  }
+
   countActiveRuns(ownerId: string): number {
     let count = 0;
     for (const run of this.runs.values()) {

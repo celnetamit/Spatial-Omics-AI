@@ -234,6 +234,22 @@
   --status-critical: #d03b3b;
 
   /*
+   * Status as text, for the words inside badges.
+   *
+   * The values above are marks (borders, icons) and stay as they are: the
+   * critical red is far from the serious orange, including under colour
+   * blindness. As 10px text on dark surfaces, though, critical measured
+   * 3.14-4.05:1 and good exactly 4.50:1 on --surface-raised. These steps
+   * clear 4.5:1 on every dark surface (critical 4.62:1 at worst on
+   * --surface-raised). The badge words distinguish the states anyway, so a
+   * slightly closer text hue costs nothing.
+   */
+  --status-good-text: #14ad14;
+  --status-warning-text: var(--status-warning);
+  --status-serious-text: var(--status-serious);
+  --status-critical-text: #ec5f6e;
+
+  /*
    * Result labels (§1.5).
    *
    * Observed and computed are deliberately quiet; predicted is the one that
@@ -327,6 +343,12 @@
   --status-warning: #8f6409;
   --status-serious: #a1583a;
   --status-critical: #c23636;
+
+  /* Already text-safe here (4.57:1 or better on every light surface). */
+  --status-good-text: var(--status-good);
+  --status-warning-text: var(--status-warning);
+  --status-serious-text: var(--status-serious);
+  --status-critical-text: var(--status-critical);
 
   /*
    * Series hues as *text*.
@@ -3105,11 +3127,17 @@ html {
 .sll-infra-grid p,
 .sll-strategic-grid p,
 .sll-research-copy p,
+/*
+ * Left-aligned, not justified. Justification in narrow columns (the cell
+ * inspector, stat-tile details, side panels) stretched the gaps between words
+ * unevenly, e.g. "Hover  a  cell  to  inspect  it", and made card text read
+ * differently from every other paragraph in the app.
+ */
 .sll-events-list p,
 .sll-home-footer-strip p,
 .quick-start-card p,
 .section-card p {
-  text-align: justify;
+  text-align: start;
   text-wrap: pretty;
 }
 
@@ -3544,10 +3572,18 @@ code {
   -webkit-overflow-scrolling: touch;
 }
 
-.section-card input,
+/*
+ * Text-like fields only. Checkboxes, radios and range sliders were included,
+ * which stretched a checkbox's box to the width of its label and squeezed
+ * the words beside it onto two lines ("Fade by / uncertainty", with a wide
+ * gap after the box). This rule is unlayered, so it also beat Tailwind's
+ * layered `w-40` on the propagation stage slider. Excluding the types here
+ * lets those controls take their natural or utility-class width.
+ */
+.section-card input:not([type='checkbox'], [type='radio'], [type='range']),
 .section-card select,
 .section-card textarea,
-.project-command-center input,
+.project-command-center input:not([type='checkbox'], [type='radio'], [type='range']),
 .project-command-center select,
 .project-command-center textarea {
   width: 100%;
@@ -3939,4 +3975,340 @@ code {
 .nav-item[aria-current='page'] {
   background: var(--nav-active) !important;
   border-color: var(--border) !important;
+}
+
+/*
+ * WCAG 2.2 AA target floor (2.5.8, 24px) at every width.
+ *
+ * On desktop 38 controls measured under 24px: checkbox and radio rows (17-18px),
+ * the stage slider (16px), disclosure rows (18-19px) and the Compare table's
+ * sort buttons (19px). The spacing exception probably covered most of them;
+ * meeting the floor outright costs a few pixels. Placed before the touch
+ * block below, so its 44px wins on phones.
+ */
+label:has(> input[type='checkbox']),
+label:has(> input[type='radio']),
+input[type='range'],
+th button {
+  min-height: 24px;
+}
+
+summary {
+  padding-block: max(0px, calc((24px - 1lh) / 2));
+}
+
+/*
+ * The three-line minimum `textarea` was given near the top of this file
+ * (min-block-size: 4.5rem) is the same property as the later field rule's
+ * min-height: 2.25rem, which won. Every textarea, including the feedback
+ * box, sat at one line until typed into.
+ */
+textarea {
+  min-height: 4.5rem;
+}
+
+/*
+ * Touch targets: 44px on phones and touch screens.
+ *
+ * Measured at 390px, 122 of 151 controls were under 44px, and 28 were under
+ * WCAG 2.2's 24px floor: checkbox and radio rows (16-18px), the propagation
+ * stage slider (16px), the disclosure rows of the methods and adverse
+ * panels (18px), and the filter chips (25-27px). Desktop keeps its density;
+ * a mouse pointer is precise and the instrument panels need the room.
+ *
+ * Only heights and minimums change, so nothing reflows on desktop and
+ * labels keep their authored alignment.
+ */
+@media (max-width: 767px), (pointer: coarse) {
+  button:not(.sr-only),
+  a[href]:not(.sr-only):not(p a):not(li > a):not(td a),
+  select,
+  input:not([type='checkbox'], [type='radio'], [type='hidden']),
+  [role='button'],
+  [role='tab'] {
+    min-height: 44px;
+  }
+
+  button:not(.sr-only),
+  [role='button'] {
+    min-width: 44px;
+  }
+
+  /*
+   * The label is what a finger hits, not the 15px box inside it. Height only:
+   * every such label is already flex, and the multi-line ones (project mode,
+   * agreement consent) top-align the box with the first line on purpose.
+   */
+  label:has(> input[type='checkbox']),
+  label:has(> input[type='radio']) {
+    min-height: 44px;
+  }
+
+  /* Padding rather than min-height, so the disclosure marker stays put. */
+  summary {
+    padding-block: max(0px, calc((44px - 1lh) / 2));
+  }
+}
+
+/*
+ * The masthead, restyled.
+ *
+ * The black ribbon and the centre links are gone; what remains is the brand
+ * and the way back to the portal, so the bar is shorter and quieter. It is
+ * translucent over the page as it scrolls under it. Everything reads the
+ * theme tokens, so dark mode follows without a second block.
+ */
+:root {
+  --brand-gradient: linear-gradient(135deg, #2f6fc4 0%, #0891b2 100%);
+}
+
+.research-masthead.lab-masthead {
+  background: color-mix(in oklab, var(--surface) 90%, transparent) !important;
+  -webkit-backdrop-filter: saturate(1.5) blur(12px);
+  backdrop-filter: saturate(1.5) blur(12px);
+  border-bottom: 1px solid var(--border) !important;
+  box-shadow: 0 1px 0 color-mix(in oklab, var(--ink) 4%, transparent), 0 8px 24px -18px color-mix(in oklab, var(--ink) 35%, transparent);
+}
+
+.lab-masthead__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 4rem;
+  padding: 0.6rem clamp(1rem, 3vw, 2rem);
+}
+
+.lab-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-width: 0;
+}
+
+.lab-brand__mark {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.8rem;
+  background: var(--brand-gradient);
+  color: #fff;
+  box-shadow: 0 6px 16px -6px rgb(8 145 178 / 0.55), inset 0 1px 0 rgb(255 255 255 / 0.25);
+}
+
+.lab-brand__name {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.22rem;
+  font-weight: 650;
+  line-height: 1.15;
+  letter-spacing: -0.018em;
+  white-space: nowrap;
+}
+
+.lab-brand__tagline {
+  margin: 0.12rem 0 0;
+  color: var(--ink-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.lab-masthead__actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* "Back to homepage": small, quiet, and clearly a link out. */
+.lab-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 2rem;
+  padding: 0 0.85rem 0 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-raised);
+  color: var(--ink-secondary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px color-mix(in oklab, var(--ink) 8%, transparent);
+  transition: color 180ms ease, border-color 180ms ease, background-color 180ms ease;
+}
+
+.lab-back-link svg {
+  transition: transform 180ms ease;
+}
+
+.lab-back-link:hover {
+  border-color: color-mix(in oklab, var(--series-1) 55%, var(--border));
+  background: color-mix(in oklab, var(--series-1) 9%, var(--surface-raised));
+  color: var(--series-1-text);
+}
+
+.lab-back-link:hover svg {
+  transform: translateX(-2px);
+}
+
+/* Contents opens the drawer; from lg the sidebar is always visible, so it is not needed there. */
+.lab-masthead .masthead-menu {
+  height: 2rem;
+  min-height: 2rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-raised);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+@media (min-width: 1024px) {
+  .lab-masthead .masthead-menu {
+    display: none !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .lab-masthead__inner {
+    gap: 0.5rem;
+    padding-inline: 0.75rem;
+  }
+
+  .lab-brand {
+    gap: 0.55rem;
+  }
+
+  .lab-brand__mark {
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 0.7rem;
+  }
+
+  .lab-brand__name {
+    font-size: 1.05rem;
+  }
+}
+
+/*
+ * The mode switcher in each page header. Locked modes stay focusable and say
+ * why when chosen; the active mode takes the action colour (white on it is
+ * 5.0:1).
+ */
+.mode-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-sunken);
+}
+
+.mode-switcher__option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  height: 1.75rem;
+  padding: 0 0.8rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 180ms ease, color 180ms ease, box-shadow 180ms ease;
+}
+
+.mode-switcher__option:hover:not([data-active]):not([data-locked]) {
+  background: color-mix(in oklab, var(--series-1) 10%, transparent);
+  color: var(--ink);
+}
+
+.mode-switcher__option[data-active] {
+  background: var(--action);
+  color: #fff;
+  box-shadow: 0 2px 8px -3px color-mix(in oklab, var(--action) 70%, transparent);
+  cursor: default;
+}
+
+.mode-switcher__option[data-locked] {
+  color: var(--ink-muted);
+  cursor: not-allowed;
+}
+
+.mode-switcher__option[aria-disabled='true']:not([data-locked]) {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lab-back-link,
+  .lab-back-link svg,
+  .mode-switcher__option {
+    transition: none;
+  }
+
+  .lab-back-link:hover svg {
+    transform: none;
+  }
+}
+
+/*
+ * The narrowest phones. At 320px the brand, "Home" and "Contents" did not fit
+ * on one line and the brand slid under the Home pill ("Spatial Om…"). Below
+ * 380px the back link is just its arrow (it keeps the accessible name "Back
+ * to homepage" and a 44px target), and the brand text truncates rather than
+ * running under the buttons.
+ */
+.lab-brand > .min-w-0 {
+  overflow: hidden;
+}
+
+.lab-brand__name,
+.lab-brand__tagline {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 380px) {
+  .lab-back-link__short {
+    display: none;
+  }
+
+  .lab-back-link {
+    justify-content: center;
+    min-width: 44px;
+    padding: 0;
+  }
+
+  /* Uppercase tracking made the tagline wider than the name at 320px. */
+  .lab-brand__tagline {
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+  }
+}
+
+/*
+ * The masthead's own sizing above is more specific than the touch-target
+ * rule, and it pulled "Contents" back to 32px on phones. Restore the 44px
+ * floor for both masthead controls there.
+ */
+@media (max-width: 767px), (pointer: coarse) {
+  .lab-masthead .masthead-menu,
+  .lab-masthead .lab-back-link {
+    min-height: 44px;
+  }
 }

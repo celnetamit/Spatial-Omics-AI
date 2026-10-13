@@ -14,7 +14,7 @@
 
 import { useMemo, useState } from 'react';
 import type { RunDataState } from '../useRunData';
-import { useLayer } from '../useRunData';
+import { runObservations, useLayer } from '../useRunData';
 import { Caveat, ConfidenceBadge, DataTable, ResultBadge, Section, StatTile } from '../../ui/Badges';
 import { EmptyState } from '../../ui/EmptyState';
 import TissueView, { type LayerChoice } from '../TissueView';
@@ -25,12 +25,14 @@ import type { WorkspaceContext } from '../Workspace';
 export default function PredictedPage({
   context,
   prediction,
+  analysis,
 }: {
   context: WorkspaceContext;
   prediction: RunDataState;
+  analysis: RunDataState;
 }): React.ReactElement {
   const results = prediction.results?.prediction;
-  const observations = prediction.results?.observations;
+  const observations = runObservations(prediction, analysis);
   const [layerChoice, setLayerChoice] = useState<LayerChoice | null>(null);
   const [uncertaintyOverlay, setUncertaintyOverlay] = useState(true);
 
@@ -115,7 +117,7 @@ export default function PredictedPage({
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatTile
           label="Mean change"
           value={num(results.altered.meanMagnitude, 4)}
@@ -288,10 +290,10 @@ export default function PredictedPage({
                       style={{
                         color:
                           r.verdict === 'recovered'
-                            ? 'var(--status-good)'
+                            ? 'var(--status-good-text)'
                             : r.verdict === 'overshoot'
-                              ? 'var(--status-warning)'
-                              : 'var(--status-serious)',
+                              ? 'var(--status-warning-text)'
+                              : 'var(--status-serious-text)',
                       }}
                     >
                       {r.verdict}

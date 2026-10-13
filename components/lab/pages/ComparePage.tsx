@@ -48,7 +48,7 @@ export default function ComparePage({
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatTile label="Compared" value={integer(comparison.table.length)} detail="Every one simulated against the same altered state." />
         <StatTile label="Pareto front" value={integer(comparison.paretoFront.length)} detail="Nothing beats these on all three axes together." />
         <StatTile label="Composite score" value={comparison.composite ? 'Enabled' : 'Disabled'} detail={comparison.policy ? comparison.policy.id : 'No reviewer-approved weight set.'} />
@@ -156,7 +156,7 @@ export default function ComparePage({
                 <span>
                   {row.name}
                   {front.has(row.candidateId) ? (
-                    <span className="ml-1.5 text-[10px]" style={{ color: 'var(--status-good)' }}>
+                    <span className="ml-1.5 text-[10px]" style={{ color: 'var(--status-good-text)' }}>
                       Pareto
                     </span>
                   ) : null}

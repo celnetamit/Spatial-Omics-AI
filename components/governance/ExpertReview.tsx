@@ -33,18 +33,35 @@ export default function ExpertReview({ labTitle, user }: { labTitle: string; use
   const [recommendation, setRecommendation] = useState('revise');
   const [state, setState] = useState<'idle' | 'sending' | 'sent'>('idle');
   const [error, setError] = useState<string | null>(null);
+  // Set when this lab refused the check itself (403: not a reviewer).
+  const [refusal, setRefusal] = useState<string | null>(null);
 
   useEffect(() => {
+    // The session already says whether this is a reviewer, so a non-reviewer
+    // gets the answer without a request the server would refuse with a 403.
+    // The server check below stays the authority for everyone else.
+    setRefusal(null);
+    if (!user.isReviewer) {
+      setRefusal('This account is not an expert reviewer.');
+      setLoading(false);
+      return;
+    }
     void (async () => {
       try {
         setStatus(await api.agreementStatus());
-      } catch {
+      } catch (caught) {
         setStatus(null);
+        /*
+         * A 403 is this lab saying the account is not an expert reviewer. It
+         * used to be reported as "the portal could not be reached", which
+         * sends people looking for an outage that does not exist.
+         */
+        if (caught instanceof ApiError && caught.status === 403) setRefusal(caught.message);
       } finally {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [user.isReviewer]);
 
   if (loading) {
     return (
@@ -60,7 +77,9 @@ export default function ExpertReview({ labTitle, user }: { labTitle: string; use
     return (
       <Section title="Expert review" subtitle="Closed until the reviewer agreement is signed.">
         <Caveat tone="blocked">
-          {status === null
+          {refusal
+            ? `${refusal} The expert review form is open to reviewers who have signed the agreement.`
+            : status === null
             ? 'The portal could not be reached, so this lab cannot confirm whether the agreement is signed. The form stays closed — being unable to confirm a signature is not the same as knowing there is one.'
             : status.endpointPresent === false
               ? 'The portal has no reviewer-agreement endpoint. This is a deployment gap rather than a network problem, and the form stays closed.'

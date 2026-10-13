@@ -125,7 +125,7 @@ export function PageSkeleton(): React.ReactElement {
         Loading
       </span>
       <div aria-hidden="true" className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {[0, 1, 2, 3].map((slot) => (
             <div
               key={slot}

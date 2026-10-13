@@ -124,12 +124,14 @@ export interface SessionUser {
   isReviewer: boolean;
   researchConsent: boolean;
   availableModes: LabMode[];
+  /** For each mode this account cannot open, the server's reason. */
+  lockedModes?: Partial<Record<LabMode, string>>;
 }
 
 export interface LabMeta {
   version: string;
   commit: string;
-  portal: { loginUrl: string; homeUrl: string };
+  portal: { loginUrl: string; homeUrl: string; labUrl?: string };
   authEnabled: boolean;
   modes: { id: LabMode; label: string; summary: string }[];
   ai: { available: boolean; unavailableReason: string | null; role: string };
@@ -188,6 +190,7 @@ export interface ProjectSummary {
   studyQuestion: string;
   mode: LabMode;
   datasetId: string | null;
+  datasetKind: 'bundled-case' | 'upload' | null;
   referenceDatasetId: string | null;
   createdAt: string;
   updatedAt: string;

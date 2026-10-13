@@ -7,7 +7,7 @@
  * describing the same layer differently.
  */
 
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import TissueCanvas, { IDENTITY_VIEW, type ViewState } from '../viz/TissueCanvas';
 import { ColourLegend } from '../viz/Charts';
 import { buildScale } from '../../lib/colour';
@@ -63,6 +63,8 @@ export default function TissueView({
 }): React.ReactElement {
   const [hovered, setHovered] = useState<number | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
+  // Unique per instance: a page can show more than one map.
+  const layerSelectId = useId();
 
   /*
    * Every page used to give the canvas container a fixed height (420–520px).
@@ -105,8 +107,31 @@ export default function TissueView({
 
   const focus = selected ?? hovered;
 
+  /*
+   * Value i colours cell i, so a layer can only be drawn on a cell list of the
+   * same length. A different length means the values were computed for a
+   * different set of cells, for example when QC removed some, and drawing
+   * them would put real values on the wrong cells. Withhold the map and say
+   * why. The same message replaces a bare "No layer selected." when the
+   * layer arrived but no coordinates did, so the empty map does not read as
+   * the reader's mistake.
+   */
+  const misaligned = layer !== null && points.length > 0 && layer.values.length !== points.length;
+  const emptyMessage = loading
+    ? 'Loading the layer…'
+    : error
+      ? error
+      : misaligned
+        ? `This layer has ${layer.values.length.toLocaleString()} values but the section has ${points.length.toLocaleString()} cells, so it is not drawn: the values cannot be matched to cells.`
+        : layer && points.length === 0
+          ? 'No cell coordinates are available for this run, so the map cannot be drawn.'
+          : 'No layer selected.';
+
+  // Side by side from xl (1280px), not lg. At lg the 280px sidebar is already
+  // open, so the map got ~380px beside the 260px panel; below xl the panel
+  // sits under a full-width map instead.
   return (
-    <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_260px]">
+    <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_260px]">
       <div className="min-w-0">
         {title ? (
           <div className="mb-2 flex items-center gap-2">
@@ -140,7 +165,7 @@ export default function TissueView({
                 }
           }
         >
-          {layer && points.length > 0 ? (
+          {layer && points.length > 0 && !misaligned ? (
             <TissueCanvas
               points={points}
               values={layer.values}
@@ -161,7 +186,7 @@ export default function TissueView({
           ) : (
             <div className="flex h-full items-center justify-center px-6 text-center">
               <p className="text-[12px]" style={{ color: 'var(--ink-muted)' }}>
-                {loading ? 'Loading the layer…' : (error ?? 'No layer selected.')}
+                {emptyMessage}
               </p>
             </div>
           )}
@@ -170,10 +195,14 @@ export default function TissueView({
 
       <aside className="space-y-3">
         <div>
-          <label className="text-[11px] uppercase tracking-wide" style={{ color: 'var(--ink-muted)' }}>
+          {/* Tied to the select by id: the visible word alone gave the control
+              no accessible name, so a screen reader announced an unnamed
+              combobox on every map page. */}
+          <label htmlFor={layerSelectId} className="text-[11px] uppercase tracking-wide" style={{ color: 'var(--ink-muted)' }}>
             Layer
           </label>
           <select
+            id={layerSelectId}
             value={selectedId}
             onChange={(event) => {
               const choice = choices.find((candidate) => candidate.id === event.target.value);

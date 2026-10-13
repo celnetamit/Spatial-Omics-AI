@@ -72,6 +72,17 @@ export default function ExperimentPage({ context }: { context: WorkspaceContext 
   }, [compound, concentrationNm]);
 
   if (!context.project) return <Caveat>Create or open a project first.</Caveat>;
+  // The server cannot resolve a selection on an uploaded dataset, so the form
+  // would only fail on submit. Say so up front instead.
+  if (context.project.datasetKind === 'upload') {
+    return (
+      <Caveat tone="warning">
+        Perturbations can only be defined on the bundled cases at present. This project uses an uploaded dataset, which
+        supports the baseline analysis (Data &amp; QC and Baseline tissue). To run a perturbation, start a project on one
+        of the bundled cases.
+      </Caveat>
+    );
+  }
 
   const define = async (): Promise<void> => {
     setSubmitting(true);
@@ -148,7 +159,7 @@ export default function ExperimentPage({ context }: { context: WorkspaceContext 
                     : 'Knockout, inhibition, activation, overexpression or a mutation scenario.'}
                 </p>
                 {entry?.reason ? (
-                  <p className="mt-1.5 text-[11px]" style={{ color: 'var(--status-warning)' }}>
+                  <p className="mt-1.5 text-[11px]" style={{ color: 'var(--status-warning-text)' }}>
                     {entry.reason}
                   </p>
                 ) : null}
@@ -272,7 +283,7 @@ export default function ExperimentPage({ context }: { context: WorkspaceContext 
                         }}
                       />
                       {compound.testedRangeNm ? (
-                        <span className="mt-1 block text-[10.5px]" style={{ color: outOfRange ? 'var(--status-warning)' : 'var(--ink-muted)' }}>
+                        <span className="mt-1 block text-[10.5px]" style={{ color: outOfRange ? 'var(--status-warning-text)' : 'var(--ink-muted)' }}>
                           Evidence range {concentration(compound.testedRangeNm[0])} – {concentration(compound.testedRangeNm[1])}
                           {outOfRange ? ' — outside it the quantitative model is disabled and the run is exploratory (§5.3).' : ''}
                         </span>
@@ -323,7 +334,7 @@ export default function ExperimentPage({ context }: { context: WorkspaceContext 
             </label>
 
             {selectionMode !== 'whole-tissue' ? (
-              <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+              <div className="flex flex-wrap gap-x-4 gap-y-1.5" role="group" aria-label={selectionMode === 'region' ? 'Regions to perturb' : 'Cell types to perturb'}>
                 {availableClasses.map((name) => (
                   <label key={name} className="flex items-center gap-1.5 text-[12px]" style={{ color: 'var(--ink-secondary)' }}>
                     <input
@@ -340,8 +351,22 @@ export default function ExperimentPage({ context }: { context: WorkspaceContext 
                 ))}
               </div>
             ) : null}
+            {/*
+              * A cell-type or region selection needs at least one choice. With
+              * none, the server could only answer "the selection resolved to no
+              * cells", followed by its generic advice about re-uploading a file.
+              */}
+            {selectionMode !== 'whole-tissue' && classes.length === 0 ? (
+              <p className="text-[11px]" style={{ color: 'var(--status-warning-text)' }}>
+                Choose at least one {selectionMode === 'region' ? 'region' : 'cell type'} to perturb, or target the whole tissue.
+              </p>
+            ) : null}
 
-            <Button variant="primary" onClick={() => void define()} disabled={submitting}>
+            <Button
+              variant="primary"
+              onClick={() => void define()}
+              disabled={submitting || (selectionMode !== 'whole-tissue' && classes.length === 0)}
+            >
               {submitting ? 'Defining…' : 'Define perturbation'}
             </Button>
           </div>
@@ -381,10 +406,10 @@ export default function ExperimentPage({ context }: { context: WorkspaceContext 
                   style={{
                     color:
                       definition.eligibility.decision === 'quantitative'
-                        ? 'var(--status-good)'
+                        ? 'var(--status-good-text)'
                         : definition.eligibility.decision === 'exploratory'
-                          ? 'var(--status-warning)'
-                          : 'var(--status-critical)',
+                          ? 'var(--status-warning-text)'
+                          : 'var(--status-critical-text)',
                     border: '1px solid currentColor',
                   }}
                 >
@@ -486,9 +511,9 @@ export default function ExperimentPage({ context }: { context: WorkspaceContext 
                 header: 'Simulatable',
                 render: (r) =>
                   r.simulatable ? (
-                    <span style={{ color: 'var(--status-good)' }}>Yes</span>
+                    <span style={{ color: 'var(--status-good-text)' }}>Yes</span>
                   ) : (
-                    <span title={r.notSimulatableReason ?? ''} style={{ color: 'var(--status-serious)' }}>
+                    <span title={r.notSimulatableReason ?? ''} style={{ color: 'var(--status-serious-text)' }}>
                       No — {r.notSimulatableReason?.slice(0, 60)}…
                     </span>
                   ),

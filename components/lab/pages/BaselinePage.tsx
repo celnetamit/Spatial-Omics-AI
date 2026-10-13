@@ -106,7 +106,7 @@ export default function BaselinePage({
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatTile
           label="Cell classes"
           value={String(results.annotation.classes.length)}
@@ -179,6 +179,7 @@ export default function BaselinePage({
           badge={<ResultBadge label="COMPUTED" method="baseline.differential" />}
           actions={
             <select
+              aria-label="Cell class to show markers for"
               value={activeGroup}
               onChange={(event) => setGroup(event.target.value)}
               className="rounded border px-2 py-1 text-[11px]"

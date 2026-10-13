@@ -98,7 +98,7 @@ export default function AboutPage({ context }: { context: WorkspaceContext }): R
         <div className="space-y-2.5">
           {CLAIMS.map((entry) => (
             <div key={entry.claim} className="rounded border px-3 py-2" style={{ borderColor: 'var(--border)' }}>
-              <p className="text-[12px] font-medium" style={{ color: 'var(--status-serious)' }}>
+              <p className="text-[12px] font-medium" style={{ color: 'var(--status-serious-text)' }}>
                 ✕ {entry.claim}
               </p>
               <p className="mt-1 text-[11.5px] leading-relaxed" style={{ color: 'var(--ink-secondary)' }}>

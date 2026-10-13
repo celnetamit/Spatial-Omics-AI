@@ -92,7 +92,7 @@ export default function InterpretPage({ context }: { context: WorkspaceContext }
             <ul className="ml-4 mt-1 list-disc space-y-0.5 text-[11.5px]" style={{ color: 'var(--ink-secondary)' }}>
               {interpretation.gate.rejections.map((rejection, index) => (
                 <li key={index}>
-                  <span className="font-mono text-[10.5px]" style={{ color: 'var(--status-critical)' }}>
+                  <span className="font-mono text-[10.5px]" style={{ color: 'var(--status-critical-text)' }}>
                     {rejection.code}
                   </span>{' '}
                   {rejection.detail}

@@ -7,11 +7,12 @@
  * everybody exercises by hand.
  */
 
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
-  can, canOpenMode, developmentIdentity, issueSessionToken, participantPseudonym,
+  authorizeWithHub, can, canOpenMode, developmentIdentity, issueSessionToken, modeLock, participantPseudonym,
   readSessionToken, type Capability, type Identity,
 } from '../src/auth';
+import { config } from '../src/config';
 
 function identity(over: Partial<Identity> = {}): Identity {
   return {
@@ -77,6 +78,43 @@ describe('the tier gate', () => {
   it('exempts an administrator and an instructor', () => {
     expect(canOpenMode(identity({ roles: ['learner', 'admin'] }), 'expert')).toBe(true);
     expect(canOpenMode(identity({ roles: ['learner', 'instructor'] }), 'expert')).toBe(true);
+  });
+
+  it('opens Intermediate after a first completed experiment, and nothing beyond it', () => {
+    const learner = identity({ tier: 'basic' });
+    expect(canOpenMode(learner, 'moderate', { completedExperiment: false })).toBe(false);
+    expect(modeLock(learner, 'moderate', { completedExperiment: false })).toMatch(/first completed experiment/);
+    expect(canOpenMode(learner, 'moderate', { completedExperiment: true })).toBe(true);
+    // Progress opens Intermediate only; Advanced stays with role or tier.
+    expect(canOpenMode(learner, 'expert', { completedExperiment: true })).toBe(false);
+    expect(modeLock(learner, 'expert', { completedExperiment: true })).toMatch(/administrators and reviewers/);
+  });
+});
+
+describe('the identity the hub returns', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  // authorize-lab sends one `role` string, not a `roles` array.
+  function hubSays(user: Record<string, unknown>): void {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(
+      JSON.stringify({ authorized: true, sessionToken: 'hub-session', user: { id: 'hub-1', name: 'Hub user', email: 'u@example.org', ...user } }),
+      { status: 200, headers: { 'content-type': 'application/json' } },
+    )));
+  }
+
+  it.skipIf(!config.auth.enabled)('makes a hub super admin an administrator, with every mode open', async () => {
+    hubSays({ role: 'SUPER_ADMIN', isReviewer: false });
+    const result = await authorizeWithHub('launch-token');
+    expect(result.identity?.roles).toContain('admin');
+    expect(canOpenMode(result.identity as Identity, 'expert')).toBe(true);
+  });
+
+  it.skipIf(!config.auth.enabled)('keeps a hub user a learner who starts in Beginner', async () => {
+    hubSays({ role: 'USER', isReviewer: false });
+    const result = await authorizeWithHub('launch-token');
+    expect(result.identity?.roles).toEqual(['learner']);
+    expect(canOpenMode(result.identity as Identity, 'basic')).toBe(true);
+    expect(canOpenMode(result.identity as Identity, 'moderate')).toBe(false);
   });
 });
 

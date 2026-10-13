@@ -76,6 +76,8 @@ async function main(): Promise<void> {
   // -- services -------------------------------------------------------------
 
   const store = new Store(config.dataRoot);
+  const interrupted = store.failInterruptedRuns();
+  if (interrupted > 0) app.log.warn(`[runs] marked ${interrupted} run(s) interrupted by the restart as failed`);
   const queue = new JobQueue({
     concurrency: config.runs.concurrency,
     maxQueued: config.runs.maxQueued,

@@ -44,6 +44,8 @@ export const appConfig = Object.freeze({
   portal: Object.freeze({
     loginUrl: str(env.VITE_LAB_LOGIN_URL, 'https://live-labs.org/login'),
     homeUrl: str(env.VITE_LAB_HOME_URL, 'https://live-labs.org/labs'),
+    /** Used until /api/v1/meta answers; the server's value wins. */
+    labUrl: str(env.VITE_LAB_PAGE_URL, 'https://live-labs.org/dashboard/labs/spatial-ai'),
   }),
 
   ui: Object.freeze({

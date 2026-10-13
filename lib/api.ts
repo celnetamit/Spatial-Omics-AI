@@ -119,6 +119,8 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 export interface SessionUser {
   userId: string;
   displayName: string;
+  /** The account's email as the portal holds it; pre-fills the feedback form. */
+  email?: string | null;
   roles: string[];
   tier: LabMode;
   isReviewer: boolean;

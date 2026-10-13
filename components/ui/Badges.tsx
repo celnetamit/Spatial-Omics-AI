@@ -177,18 +177,33 @@ export function StatTile({
   );
 }
 
+/**
+ * Marks a section that a mode adds, so a reader can see what their mode is
+ * giving them. Beginner sections carry no tag.
+ */
+export function ModeTag({ tier }: { tier: 'moderate' | 'expert' }): React.ReactElement {
+  return (
+    <span className="mode-tag" data-tier={tier} title={tier === 'expert' ? 'Shown in Advanced mode' : 'Shown in Intermediate and Advanced modes'}>
+      {tier === 'expert' ? 'Advanced' : 'Intermediate'}
+    </span>
+  );
+}
+
 export function Section({
   title,
   subtitle,
   badge,
   children,
   actions,
+  tier,
 }: {
   title: string;
   subtitle?: string | undefined;
   badge?: React.ReactNode;
   children: React.ReactNode;
   actions?: React.ReactNode;
+  /** The lowest mode that shows this section; renders a tag in the header. */
+  tier?: 'moderate' | 'expert' | undefined;
 }): React.ReactElement {
   return (
     <section
@@ -204,6 +219,7 @@ export function Section({
             <h2 className="t-heading" style={{ color: 'var(--ink)' }}>
               {title}
             </h2>
+            {tier ? <ModeTag tier={tier} /> : null}
             {badge}
           </div>
           {subtitle ? (

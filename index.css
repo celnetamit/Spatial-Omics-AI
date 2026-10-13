@@ -4312,3 +4312,271 @@ textarea {
     min-height: 44px;
   }
 }
+
+/* Feedback rating: five squares, filled up to the chosen value. */
+.feedback-rating {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--ink-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.feedback-rating:hover {
+  border-color: var(--border-strong, var(--ink-muted));
+}
+
+.feedback-rating[data-on] {
+  border-color: color-mix(in oklab, var(--status-warning) 70%, var(--border));
+  background: color-mix(in oklab, var(--status-warning) 16%, transparent);
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feedback-rating {
+    transition: none;
+  }
+}
+
+/* The tag on a section that a mode adds. Text colours are the text-safe steps. */
+.mode-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.mode-tag[data-tier='moderate'] {
+  color: var(--series-1-text);
+}
+
+.mode-tag[data-tier='expert'] {
+  color: var(--series-7-text);
+}
+
+/*
+ * Beginner guide (top of each workflow step) and the step bar (bottom).
+ * The bar is sticky, so Next is always in the bottom-right corner of the
+ * page while the step is being read.
+ */
+.step-guide {
+  display: flex;
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid color-mix(in oklab, var(--series-1) 35%, var(--border));
+  border-radius: 0.75rem;
+  background: color-mix(in oklab, var(--series-1) 7%, var(--surface));
+}
+
+.step-guide__icon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 0.6rem;
+  background: var(--brand-gradient);
+  color: #fff;
+}
+
+.step-guide__eyebrow {
+  color: var(--series-1-text);
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.step-guide__purpose {
+  margin-top: 0.2rem;
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 550;
+  line-height: 1.45;
+}
+
+.step-guide__todo {
+  margin-top: 0.4rem;
+  padding-left: 1.1rem;
+  list-style: decimal;
+  color: var(--ink-secondary);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.step-guide__hint {
+  margin-top: 0.45rem;
+  color: var(--ink-muted);
+  font-size: 0.72rem;
+}
+
+.step-nav {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding: 0.6rem 0.75rem 0.6rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem 0.75rem 0 0;
+  background: color-mix(in oklab, var(--surface) 92%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 -8px 24px -18px color-mix(in oklab, var(--ink) 40%, transparent);
+}
+
+.step-nav__where {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.6rem;
+  row-gap: 0.1rem;
+}
+
+.step-nav__count {
+  color: var(--ink-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.step-nav__title {
+  color: var(--ink);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.step-nav__todo {
+  flex-basis: 100%;
+  color: var(--ink-secondary);
+  font-size: 0.75rem;
+}
+
+.step-nav__actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.step-nav__back,
+.step-nav__next {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 2.25rem;
+  padding: 0 0.95rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.step-nav__back {
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  color: var(--ink-secondary);
+}
+
+.step-nav__back:hover {
+  border-color: color-mix(in oklab, var(--series-1) 50%, var(--border));
+}
+
+.step-nav__next {
+  border: 1px solid transparent;
+  background: var(--action);
+  color: #fff;
+  box-shadow: 0 4px 14px -6px color-mix(in oklab, var(--action) 80%, transparent);
+}
+
+.step-nav__next:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--action) 88%, #000);
+}
+
+.step-nav__next:hover:not(:disabled) svg {
+  transform: translateX(2px);
+}
+
+.step-nav__next svg {
+  transition: transform 160ms ease;
+}
+
+.step-nav__next:disabled {
+  border-color: var(--border);
+  background: var(--surface-sunken);
+  color: var(--ink-muted);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.step-nav__done {
+  color: var(--ink-muted);
+  font-size: 0.78rem;
+}
+
+@media (max-width: 767px), (pointer: coarse) {
+  .step-nav__back,
+  .step-nav__next {
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step-nav__back,
+  .step-nav__next,
+  .step-nav__next svg {
+    transition: none;
+  }
+}
+
+/*
+ * The step bar is now only its Next button. The sticky strip stays, so the
+ * button keeps its bottom-right place while the step scrolls, but it has no
+ * background, border or text of its own, and does not catch clicks meant for
+ * the content behind it.
+ */
+.step-nav {
+  justify-content: flex-end;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  pointer-events: none;
+}
+
+.step-nav .step-nav__next {
+  margin-bottom: 0.75rem;
+  pointer-events: auto;
+  box-shadow: 0 6px 18px -6px color-mix(in oklab, var(--action) 80%, transparent), 0 1px 2px rgb(0 0 0 / 0.12);
+}
+
+/* A disabled Next should not glow like an active one. */
+.step-nav .step-nav__next:disabled {
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.1);
+}

@@ -18,6 +18,7 @@ import TissueView, { type LayerChoice } from '../TissueView';
 import { BarChart } from '../../viz/Charts';
 import { concentration, delta, integer, num } from '../../../lib/format';
 import type { WorkspaceContext } from '../Workspace';
+import { atLeast } from '../../../lib/steps';
 
 const REQUIREMENT_LABEL: Record<string, string> = {
   'stable-identifier': 'Stable compound identifier',
@@ -151,7 +152,12 @@ export default function RescuePage({
         </p>
       </Section>
 
+      {/* Why a candidate was excluded, rule by rule, and the raw per-candidate
+          components are Intermediate's diagnostics; the eligible list and the
+          maps are every mode's. */}
+      {atLeast(context.project?.mode, 'moderate') ? (
       <Section
+        tier="moderate"
         title="Excluded candidates"
         subtitle="§6.17 — the excluded table names which rule failed, so it is informative rather than a count."
       >
@@ -190,7 +196,9 @@ export default function RescuePage({
           empty="No candidate was excluded."
         />
       </Section>
+      ) : null}
 
+      {/* Failures are reported in every mode: a hidden failure reads as a success. */}
       {failed.length > 0 ? (
         <Section title="Simulations that failed" subtitle="§6.18 — one candidate's failure does not corrupt the others.">
           <DataTable
@@ -203,8 +211,8 @@ export default function RescuePage({
         </Section>
       ) : null}
 
-      {complete.length > 0 ? (
-        <Section title="Per-candidate outcome" subtitle="Components first. The comparison screen normalises them; these are the raw values.">
+      {complete.length > 0 && atLeast(context.project?.mode, 'moderate') ? (
+        <Section tier="moderate" title="Per-candidate outcome" subtitle="Components first. The comparison screen normalises them; these are the raw values.">
           <DataTable
             rows={complete}
             maxHeight={360}

@@ -10,7 +10,8 @@
 
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api, ApiError, type LabMeta, type PerturbationDefinition, type ProjectSummary, type SessionUser } from '../../lib/api';
-import { PAGE_TITLES, type Page } from '../../types';
+import { PAGE_TITLES, WORKFLOW_PAGES, type Page } from '../../types';
+import { StepGuide, StepNav } from './StepChrome';
 import { projectStateLabel } from '../../lib/format';
 import { MODE_LABEL, type LabMode } from '../../lib/governance/modeLabels';
 import ModeSwitcher from '../ui/ModeSwitcher';
@@ -358,6 +359,12 @@ export default function Workspace({
         </header>
       )}
 
+      {/*
+        * Beginner mode's guide to the step. The other modes trade it for the
+        * diagnostics and provenance their tagged sections add.
+        */}
+      {WORKFLOW_PAGES.includes(page) && (project?.mode ?? 'basic') === 'basic' ? <StepGuide page={page} /> : null}
+
       <Suspense fallback={<PageSkeleton />}>
       {/*
         * A restore in flight is not an empty stage.
@@ -393,6 +400,9 @@ export default function Workspace({
       {page === 'register' ? <RegistryPage /> : null}
       {page === 'about' ? <AboutPage context={context} /> : null}
       </Suspense>
+
+      {/* Where this step sits, and Next once it is complete. */}
+      <StepNav page={page} project={project} navigate={navigate} />
     </div>
   );
 }

@@ -15,6 +15,7 @@
 
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
+import { MODE_LABEL } from './lib/governance/modeLabels';
 import { api, ApiError, type LabMeta, type ProjectSummary, type SessionUser } from './lib/api';
 import { appConfig } from './lib/config';
 import { logger } from './lib/logger';
@@ -30,6 +31,7 @@ import SignIn from './components/lab/SignIn';
 
 const ReviewerAgreement = lazy(() => import('./components/governance/ReviewerAgreement'));
 const Feedback = lazy(() => import('./components/governance/Feedback'));
+const FeedbackDialog = lazy(() => import('./components/governance/Feedback').then((module) => ({ default: module.FeedbackDialog })));
 const ExpertReview = lazy(() => import('./components/governance/ExpertReview'));
 const ImplementationRegister = lazy(() => import('./components/governance/ImplementationRegister'));
 
@@ -51,6 +53,8 @@ export default function App(): React.ReactElement {
    * dropped on small screens — it has to be reachable instead.
    */
   const [navOpen, setNavOpen] = useState(false);
+  // The feedback dialog, opened from the sidebar over whatever screen is showing.
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   /*
    * The palette's actions come from the workspace, because that is where the
@@ -430,7 +434,20 @@ export default function App(): React.ReactElement {
             {GOVERNANCE_PAGES.filter((item) =>
               item === 'agreement' || item === 'review' ? Boolean(user?.isReviewer) : true,
             ).map((item) => (
-              <NavItem key={item} page={item} active={page === item} onSelect={navigate} available={{ ready: true, reason: null }} />
+              <NavItem
+                key={item}
+                page={item}
+                active={page === item}
+                // Feedback opens over the current screen, as in the other labs,
+                // so it records where the reader was and does not lose their place.
+                onSelect={(target) => {
+                  if (target === 'feedback') {
+                    setNavOpen(false);
+                    setFeedbackOpen(true);
+                  } else navigate(target);
+                }}
+                available={{ ready: true, reason: null }}
+              />
             ))}
           </NavGroup>
 
@@ -449,7 +466,9 @@ export default function App(): React.ReactElement {
             </button>
             {user ? (
               <p className="t-caption mt-2.5 truncate">
-                {user.displayName} · {user.tier}
+                {/* The open project's mode, which the switcher changes; it used to
+                    print the account tier ("basic"), which no choice ever moved. */}
+                {user.displayName} · {project ? `${MODE_LABEL[project.mode]} mode` : 'no project open'}
               </p>
             ) : null}
           </div>
@@ -494,7 +513,7 @@ export default function App(): React.ReactElement {
                     {PAGE_TITLES[page]}
                   </h1>
                 )}
-                {page === 'feedback' ? <Feedback labTitle="Spatial Omics AI Virtual LiveLab" /> : null}
+                {page === 'feedback' ? <Feedback user={user} /> : null}
                 {page === 'implementation' ? <ImplementationRegister /> : null}
                 {page === 'agreement' && user ? (
                   <ReviewerAgreement
@@ -525,6 +544,11 @@ export default function App(): React.ReactElement {
           </main>
         </div>
         <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} commands={commands} />
+        {feedbackOpen ? (
+          <Suspense fallback={null}>
+            <FeedbackDialog user={user} screen={PAGE_TITLES[page]} onClose={() => setFeedbackOpen(false)} />
+          </Suspense>
+        ) : null}
       </div>
     </ToastProvider>
   );

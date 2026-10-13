@@ -66,7 +66,9 @@ export default function ReportPage({ context }: { context: WorkspaceContext }): 
         subtitle={`${present} of ${payload.report.sections.length} sections have content. Generated ${timestamp(payload.report.generatedAt)}.`}
         actions={
           <div className="flex gap-2">
-            <Button onClick={download}>Download JSON</Button>
+            {/* The machine-readable bundle is Advanced's, as the server's note says;
+                it decides `machineReadable`, so the button follows it. */}
+            {payload.machineReadable ? <Button onClick={download}>Download JSON</Button> : null}
             <Button onClick={() => window.print()}>Print</Button>
           </div>
         }

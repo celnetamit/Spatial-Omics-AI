@@ -426,6 +426,7 @@ export function publicUser(session: Session, store: Store): Record<string, unkno
   return {
     userId: session.identity.userId,
     displayName: session.identity.displayName,
+    email: session.identity.email,
     roles: session.identity.roles,
     tier: session.identity.tier,
     isReviewer: session.identity.isReviewer,

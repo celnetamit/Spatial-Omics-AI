@@ -21,6 +21,7 @@ import TissueView, { type LayerChoice } from '../TissueView';
 import { BarChart } from '../../viz/Charts';
 import { delta, integer, num, percent } from '../../../lib/format';
 import type { WorkspaceContext } from '../Workspace';
+import { atLeast } from '../../../lib/steps';
 
 export default function PredictedPage({
   context,
@@ -307,7 +308,9 @@ export default function PredictedPage({
         </Section>
       ) : null}
 
-      <Section title="Out-of-domain assessment" subtitle="§6.20 — how far this run sits from the distribution the model was fitted on.">
+      {/* The confidence tile carries the verdict in every mode; the distances behind it are Intermediate's. */}
+      {atLeast(context.project?.mode, 'moderate') ? (
+      <Section tier="moderate" title="Out-of-domain assessment" subtitle="§6.20 — how far this run sits from the distribution the model was fitted on.">
         <Caveat tone={results.uncertainty.domain.status === 'in-domain' ? 'note' : 'warning'}>
           {results.uncertainty.domain.explanation}
         </Caveat>
@@ -330,6 +333,7 @@ export default function PredictedPage({
           </p>
         ) : null}
       </Section>
+      ) : null}
     </div>
   );
 }

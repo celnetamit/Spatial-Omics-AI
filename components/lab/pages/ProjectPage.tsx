@@ -498,7 +498,9 @@ export default function ProjectPage({
                           <span className="t-body block truncate font-medium" style={{ color: 'var(--ink)' }}>
                             {entry.title}
                           </span>
-                          <span className="t-caption mt-1 block" style={{ color: 'var(--ink-muted)' }}>
+                          {/* Secondary, not muted: on the open project's raised card in dark
+                              mode the muted ink measured 4.43:1, just under 4.5. */}
+                          <span className="t-caption mt-1 block" style={{ color: 'var(--ink-secondary)' }}>
                             {MODE_LABEL[entry.mode]} · updated {timestamp(entry.updatedAt)}
                           </span>
                         </div>

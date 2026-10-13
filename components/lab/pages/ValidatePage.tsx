@@ -160,6 +160,7 @@ export default function ValidatePage({
           zero.
         </p>
         <textarea
+          aria-label="Observed change per feature, one per line as SYMBOL, value"
           value={observedText}
           rows={6}
           onChange={(event) => setObservedText(event.target.value)}

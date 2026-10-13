@@ -21,6 +21,7 @@ import TissueView, { type LayerChoice } from '../TissueView';
 import { BarChart } from '../../viz/Charts';
 import { delta, integer, num, percent } from '../../../lib/format';
 import type { WorkspaceContext } from '../Workspace';
+import { atLeast } from '../../../lib/steps';
 
 export default function PropagationPage({
   context,
@@ -183,7 +184,7 @@ export default function PropagationPage({
         </p>
       </Section>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className={atLeast(context.project?.mode, 'moderate') ? 'grid gap-4 lg:grid-cols-2' : 'grid gap-4'}>
         <Section
           title={`What moved at ${stageEntry?.label ?? 'this stage'}`}
           subtitle="Section-mean change per network node, relative to the unperturbed baseline."
@@ -198,7 +199,9 @@ export default function PropagationPage({
           />
         </Section>
 
+        {atLeast(context.project?.mode, 'moderate') ? (
         <Section
+          tier="moderate"
           title="Direct response terms"
           subtitle="§7.1 — DirectEffect = A_i × D(C) × T(t) × S_i × W_e, each term shown separately rather than folded into one number."
           badge={<ResultBadge label="COMPUTED" method={results.direct.method} />}
@@ -231,10 +234,15 @@ export default function PropagationPage({
             </Caveat>
           ) : null}
         </Section>
+        ) : null}
       </div>
 
+      {/* The comparison with the generating mechanism is Advanced's; the note
+          that it was not requested stays in every mode, because it says how to get it. */}
       {results.mechanisticReference.ran ? (
+        atLeast(context.project?.mode, 'expert') ? (
         <Section
+          tier="expert"
           title="Simulated reference"
           subtitle="The mechanism that generated this bundled case, re-solved under the same perturbation."
           badge={<ResultBadge label="COMPUTED" method="mechanistic reaction-diffusion solve" />}
@@ -257,11 +265,13 @@ export default function PropagationPage({
             </div>
           ) : null}
         </Section>
+        ) : null
       ) : (
         <Caveat>{results.mechanisticReference.reason}</Caveat>
       )}
 
-      <Section title="Graph used for this run" subtitle="§5.4 — graph parameters are versioned with the run and cannot change silently.">
+      {atLeast(context.project?.mode, 'moderate') ? (
+      <Section tier="moderate" title="Graph used for this run" subtitle="§5.4 — graph parameters are versioned with the run and cannot change silently.">
         <dl className="grid gap-2 text-[11.5px] sm:grid-cols-3" style={{ color: 'var(--ink-secondary)' }}>
           <div>
             <dt style={{ color: 'var(--ink-muted)' }}>Graph</dt>
@@ -281,6 +291,7 @@ export default function PropagationPage({
           </div>
         </dl>
       </Section>
+      ) : null}
     </div>
   );
 }

@@ -97,7 +97,9 @@ export async function registerGovernanceRoutes(
       });
     }
     if (!result.ok) {
-      return fail(reply, result.status, 'INTERNAL', 'The portal refused the feedback submission.', REFUSED);
+      // The portal says which field it refused; pass that on rather than a bare "refused".
+      const said = (result.body as { message?: unknown } | null)?.message;
+      return fail(reply, result.status, 'INTERNAL', typeof said === 'string' ? `The portal refused the feedback: ${said}` : 'The portal refused the feedback submission.', REFUSED);
     }
     services.store.audit({
       actorId: session.identity.userId,
@@ -135,7 +137,13 @@ export async function registerGovernanceRoutes(
       });
     }
     const result = await callHub(
-      `/api/labs/reviewer-agreement?lab=${encodeURIComponent(config.auth.labSlug)}`,
+      /*
+       * The hub reports a signature only for the version named here; without
+       * `version` it answered `signed: null` every time. That made every
+       * reviewer sign again on every visit, because a recorded signature was
+       * never recognised.
+       */
+      `/api/labs/reviewer-agreement?lab=${encodeURIComponent(config.auth.labSlug)}&version=${encodeURIComponent(AGREEMENT_VERSION)}`,
       'GET',
       session.hubToken,
     );
@@ -163,15 +171,29 @@ export async function registerGovernanceRoutes(
       });
     }
 
-    const body = (result.body ?? {}) as { signed?: boolean; version?: string; signedAt?: string };
+    /*
+     * The hub answers `signed: { acknowledgedAt, agreementVersion,
+     * agreementFingerprint, ... }` or `signed: null`, not a boolean. A record
+     * for this version only counts if it was signed over the same text: if the
+     * wording changed without a version bump, the fingerprint will not match
+     * and the reviewer is asked to sign the text they are actually shown.
+     */
+    const body = (result.body ?? {}) as {
+      signed?: { acknowledgedAt?: string; agreementVersion?: string; agreementFingerprint?: string } | null;
+      message?: string;
+    };
+    const record = result.ok && body.signed && typeof body.signed === 'object' ? body.signed : null;
+    const signed = record !== null && (!record.agreementFingerprint || record.agreementFingerprint === agreementFingerprint());
     return reply.send({
-      status: body.signed ? 'signed' : 'not-signed',
-      signed: Boolean(body.signed),
-      signedVersion: body.version ?? null,
-      signedAt: body.signedAt ?? null,
-      reason: body.signed
+      status: signed ? 'signed' : 'not-signed',
+      signed,
+      signedVersion: record?.agreementVersion ?? null,
+      signedAt: record?.acknowledgedAt ?? null,
+      reason: signed
         ? null
-        : 'The expert reviewer agreement has not been signed for this lab.',
+        : result.ok
+          ? 'The expert reviewer agreement has not been signed for this lab.'
+          : (body.message ?? `The portal answered ${result.status} when asked about the agreement.`),
       portalReachable: true,
       endpointPresent: true,
       version: AGREEMENT_VERSION,

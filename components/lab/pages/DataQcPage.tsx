@@ -20,6 +20,8 @@ import TissueView, { type LayerChoice } from '../TissueView';
 import { integer, num, percent } from '../../../lib/format';
 import { useToast } from '../../ui/ToastContext';
 import type { WorkspaceContext } from '../Workspace';
+import { atLeast } from '../../../lib/steps';
+import { PreprocessingPanel } from '../ModePanels';
 
 const KIND_LABEL: Record<string, string> = {
   structural: 'Structural — fixed for every tissue',
@@ -211,6 +213,11 @@ export default function DataQcPage({
           <StatTile label="Sparsity" value={percent(results.qc.summary.sparsity)} detail="fraction of the matrix that is zero" />
         </div>
       </Section>
+
+      {/* Intermediate and up: the preprocessing record the server sends from that mode. */}
+      {atLeast(context.project?.mode, 'moderate') ? (
+        <PreprocessingPanel preprocessing={results.preprocessing} observations={results.qc.summary.observations} />
+      ) : null}
     </div>
   );
 }

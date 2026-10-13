@@ -22,6 +22,8 @@ import TissueView, { type LayerChoice } from '../TissueView';
 import { BarChart, MatrixChart } from '../../viz/Charts';
 import { integer, num, percent, pValue } from '../../../lib/format';
 import type { WorkspaceContext } from '../Workspace';
+import { atLeast } from '../../../lib/steps';
+import { GraphConstructionPanel, ProvenancePanel } from '../ModePanels';
 
 export default function BaselinePage({
   context,
@@ -95,6 +97,9 @@ export default function BaselinePage({
   }
 
   const points = observations ? observations.x.map((x, i) => ({ x, y: observations.y[i] as number })) : [];
+  // Beginner keeps the core picture; Intermediate adds the spatial statistics
+  // and how the graph was built; Advanced adds the run's provenance.
+  const intermediate = atLeast(context.project?.mode, 'moderate');
   const groups = results.annotation.classes;
   const activeGroup = group || (groups[0] ?? '');
   const markers = results.differential.results
@@ -146,10 +151,15 @@ export default function BaselinePage({
         title="Tissue map"
         subtitle="Click a cell to keep it selected. Every layer here was computed on the server; the client draws it, it does not derive it."
         actions={
-          <label className="flex items-center gap-1.5 text-[11px]" style={{ color: 'var(--ink-secondary)' }}>
-            <input type="checkbox" checked={showEdges} onChange={(event) => setShowEdges(event.target.checked)} />
-            Graph overlay
-          </label>
+          // The edges come with the full graph, which the server sends from
+          // Intermediate up. In Beginner the toggle drew nothing, so it is only
+          // offered where it works.
+          results.graph.edgeSample ? (
+            <label className="flex items-center gap-1.5 text-[11px]" style={{ color: 'var(--ink-secondary)' }}>
+              <input type="checkbox" checked={showEdges} onChange={(event) => setShowEdges(event.target.checked)} />
+              Graph overlay
+            </label>
+          ) : undefined
         }
       >
         <TissueView
@@ -263,8 +273,10 @@ export default function BaselinePage({
         </Section>
       </div>
 
+      {intermediate ? (
       <div className="grid gap-4 lg:grid-cols-2">
         <Section
+          tier="moderate"
           title="Neighbourhood enrichment"
           subtitle={`Against ${integer(results.enrichment.permutations)} label permutations on fixed coordinates. A spatial association — not evidence of signalling.`}
           badge={<ResultBadge label="COMPUTED" method="spatial.neighbourhood-enrichment" />}
@@ -282,6 +294,7 @@ export default function BaselinePage({
         </Section>
 
         <Section
+          tier="moderate"
           title="Candidate communication"
           subtitle="Sparse unbalanced optimal transport: neighbours compete for a finite ligand rather than each being scored at full strength."
           badge={<ResultBadge label="COMPUTED" method="spatial.communication" />}
@@ -314,7 +327,11 @@ export default function BaselinePage({
         </Section>
       </div>
 
+      ) : null}
+
+      {intermediate ? (
       <Section
+        tier="moderate"
         title="Spatial autocorrelation"
         subtitle="Moran's I on the thirty most variable features. Both statistics are reported: a feature high on one and not the other is telling you about the scale of its pattern."
         badge={<ResultBadge label="COMPUTED" method="spatial.autocorrelation" />}
@@ -329,6 +346,10 @@ export default function BaselinePage({
           ]}
         />
       </Section>
+      ) : null}
+
+      {intermediate ? <GraphConstructionPanel graph={results.graph} /> : null}
+      {atLeast(context.project?.mode, 'expert') ? <ProvenancePanel manifest={results.manifest} /> : null}
     </div>
   );
 }

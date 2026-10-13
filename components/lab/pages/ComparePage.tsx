@@ -17,6 +17,7 @@ import { EmptyState } from '../../ui/EmptyState';
 import { BarChart, MatrixChart, ScatterChart } from '../../viz/Charts';
 import { integer, num } from '../../../lib/format';
 import type { WorkspaceContext } from '../Workspace';
+import { atLeast } from '../../../lib/steps';
 
 export default function ComparePage({
   context,
@@ -72,7 +73,11 @@ export default function ComparePage({
         </Caveat>
       ) : null}
 
+      {/* Every mode sees the trade-off chart, the table and the policy; the
+          normalised matrix and the burden breakdown are Intermediate's. */}
+      {atLeast(context.project?.mode, 'moderate') ? (
       <Section
+        tier="moderate"
         title="Component matrix"
         subtitle="Normalised within this set: 1.0 means best of the candidates simulated here, never 'good'."
         badge={<ResultBadge label="PREDICTED" />}
@@ -100,8 +105,9 @@ export default function ComparePage({
           ))}
         </div>
       </Section>
+      ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className={atLeast(context.project?.mode, 'moderate') ? 'grid gap-4 lg:grid-cols-2' : 'grid gap-4'}>
         <Section
           title="Benefit against adverse burden"
           subtitle="Two axes, never summed. A candidate in the lower right does well on both."
@@ -128,7 +134,8 @@ export default function ComparePage({
           </p>
         </Section>
 
-        <Section title="Adverse burden by candidate" badge={<ResultBadge label="PREDICTED" />}>
+        {atLeast(context.project?.mode, 'moderate') ? (
+        <Section tier="moderate" title="Adverse burden by candidate" badge={<ResultBadge label="PREDICTED" />}>
           <BarChart
             data={comparison.table.map((row) => ({
               label: row.name,
@@ -139,6 +146,7 @@ export default function ComparePage({
             formatValue={(value) => num(value, 4)}
           />
         </Section>
+        ) : null}
       </div>
 
       <Section
@@ -227,7 +235,7 @@ export default function ComparePage({
       </Section>
 
       {context.project?.mode === 'expert' ? (
-        <Section title="Resistance and adaptation" subtitle="Named feedback nodes, so the figure is not a rename of the adverse burden.">
+        <Section tier="expert" title="Resistance and adaptation" subtitle="Named feedback nodes, so the figure is not a rename of the adverse burden.">
           <DataTable
             rows={results.simulated.filter((entry) => entry.status === 'complete').flatMap((entry) =>
               entry.resistanceDetail.map((detail) => ({ candidate: entry.name, ...detail })),
